@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-R4Y4YXFHZS"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+
+        function gtag(){
+            dataLayer.push(arguments);
+        }
+
+        gtag('js', new Date());
+
+        gtag('config', 'G-R4Y4YXFHZS');
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How Node.js Single Executable Applications Work - node.js</title>
+    <meta name="description" content="This article explains how the Single Executable Applications (SEA) feature in Node.js allows developers to bundle a JavaScript application and the Node.js runtime into a single, redistributable binary. It covers the underlying mechanism of the node:sea b">
+    <link rel="canonical" href="https://salivity.github.io/node.js/article/how-node-js-single-executable-applications-work">
+    <link rel="icon" href="/node.js/favicon.ico">
+    <link rel="stylesheet" href="/node.js/css/style.css">
+    <link media="print" rel="stylesheet" href="/node.js/css/print.css">
+    <script src="/node.js/js/fuse.min.js"></script>
+    <script src="/node.js/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How Node.js Single Executable Applications Work - node.js" />
+    <meta property="og:url" content="https://salivity.github.io/node.js/article/how-node-js-single-executable-applications-work" />
+    <meta property="og:image:url" content="https://salivity.github.io/node.js/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/node.js/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article explains how the Single Executable Applications (SEA) feature in Node.js allows developers to bundle a JavaScript application and the Node.js runtime into a single, redistributable binary. It covers the underlying mechanism of the node:sea b" />
+    <link rel="manifest" href="/node.js/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/node.js/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>node.js</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="https://github.com/salivity" title="Github" aria-label="Go To Github Profile Page"><svg class="svg-icon" focusable="false" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 1.27a11 11 0 00-3.48 21.46c.55.09.73-.28.73-.55v-1.84c-3.03.64-3.67-1.46-3.67-1.46-.55-1.29-1.28-1.65-1.28-1.65-.92-.65.1-.65.1-.65 1.1 0 1.73 1.1 1.73 1.1.92 1.65 2.57 1.2 3.21.92a2 2 0 01.64-1.47c-2.47-.27-5.04-1.19-5.04-5.5 0-1.1.46-2.1 1.2-2.84a3.76 3.76 0 010-2.93s.91-.28 3.11 1.1c1.8-.49 3.7-.49 5.5 0 2.1-1.38 3.02-1.1 3.02-1.1a3.76 3.76 0 010 2.93c.83.74 1.2 1.74 1.2 2.94 0 4.21-2.57 5.13-5.04 5.4.45.37.82.92.82 2.02v3.03c0 .27.1.64.73.55A11 11 0 0012 1.27"></path></svg></a></li>
+                <li><a href="/node.js/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-nodejs-single-executable-applications-work">How Node.js
+Single Executable Applications Work</h1>
+<p>This article explains how the Single Executable Applications (SEA)
+feature in Node.js allows developers to bundle a JavaScript application
+and the Node.js runtime into a single, redistributable binary. It covers
+the underlying mechanism of the <code>node:sea</code> built-in module,
+the step-by-step process of generating a standalone executable, and how
+the runtime executes the embedded code without requiring an external
+Node.js installation on the target machine.</p>
+<h2 id="understanding-single-executable-applications-sea">Understanding
+Single Executable Applications (SEA)</h2>
+<p>Historically, running a Node.js application required the target
+machine to have the Node.js runtime installed. The Single Executable
+Applications (SEA) feature, introduced natively in Node.js, eliminates
+this dependency. It allows developers to package their JavaScript code
+directly into a copy of the Node.js binary itself. When a user runs the
+resulting executable, the embedded Node.js runtime launches and
+immediately executes the bundled JavaScript code.</p>
+<h2 id="the-architecture-of-sea">The Architecture of SEA</h2>
+<p>The SEA mechanism relies on injecting a preparation blob containing
+the application code into a dedicated section of the Node.js
+executable.</p>
+<p>Instead of compiling JavaScript into machine code, SEA leverages the
+fact that the Node.js binary is designed to look for an embedded asset
+block inside its own executable file. If this resource block is present,
+Node.js bypasses its default behavior (which is to look for a
+command-line script argument or an <code>index.js</code> file) and
+instead executes the code stored within the embedded block.</p>
+<h2 id="step-by-step-execution-workflow">Step-by-Step Execution
+Workflow</h2>
+<p>Creating a single executable application involves a distinct
+four-step pipeline.</p>
+<h3 id="1-bundling-the-source-code">1. Bundling the Source Code</h3>
+<p>Before creating an executable, all application code and its
+dependencies must be bundled into a single JavaScript file. Since the
+executable only reads a single entry point, tools like esbuild, Webpack,
+or Rollup are typically used to consolidate the project into a single
+<code>dist/index.js</code> file.</p>
+<h3 id="2-creating-the-configuration-file">2. Creating the Configuration
+File</h3>
+<p>Node.js requires a JSON configuration file to define how the
+executable should be built. This file specifies the input path of the
+bundled JavaScript and the output path for the preparation blob. A
+typical <code>sea-config.json</code> looks like this:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;main&quot;</span><span class="fu">:</span> <span class="st">&quot;dist/index.js&quot;</span><span class="fu">,</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;output&quot;</span><span class="fu">:</span> <span class="st">&quot;sea-prep.blob&quot;</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<h3 id="3-generating-the-preparation-blob">3. Generating the Preparation
+Blob</h3>
+<p>Using the configuration file, developers run a Node.js command to
+compile the JavaScript code into a binary preparation blob:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">node</span> <span class="at">--experimental-sea-config</span> sea-config.json</span></code></pre></div>
+<p>This command processes the entry point, checks for syntax, and
+packages the code into the <code>sea-prep.blob</code> file.</p>
+<h3 id="4-injecting-the-blob-into-the-binary">4. Injecting the Blob into
+the Binary</h3>
+<p>To create the final executable, a copy of the official Node.js
+executable is made. The preparation blob is then injected into this
+copy.</p>
+<p>Depending on the operating system, the injection process varies:</p>
+<ul>
+<li><strong>Windows:</strong> The blob is resource-aligned and written
+into the binary using tools like <code>signtool</code> or PowerShell
+scripts.</li>
+<li><strong>macOS / Linux:</strong> A utility called
+<code>postject</code> is used to inject the blob into the binary's asset
+segment (such as <code>__bundle</code> on macOS or
+<code>.note.NODE_JS_LAND</code> on Linux).</li>
+</ul>
+<p>Once injected, the executable is ready to run. On macOS and Windows,
+the final binary must be re-signed to satisfy OS-level security
+policies.</p>
+<h2 id="how-the-binary-runs">How the Binary Runs</h2>
+<p>When the final executable is launched, the embedded Node.js runtime
+initializes. During initialization, Node.js checks its binary headers
+for the injected SEA segment.</p>
+<p>If the segment is detected:</p>
+<ol type="1">
+<li>Node.js extracts the bundled JavaScript code into memory.</li>
+<li>It configures the V8 engine and registers internal APIs.</li>
+<li>It executes the JavaScript code within the embedded
+environment.</li>
+<li>Command-line arguments passed to the executable are forwarded
+directly to the running JavaScript application via
+<code>process.argv</code>.</li>
+</ol>
+<p>Through this process, Node.js delivers a self-contained,
+dependency-free executable suitable for distribution.</p></article>
+        <div id=comments-container></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/node.js'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/node.js/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/node.js/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

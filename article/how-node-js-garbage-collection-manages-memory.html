@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-R4Y4YXFHZS"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+
+        function gtag(){
+            dataLayer.push(arguments);
+        }
+
+        gtag('js', new Date());
+
+        gtag('config', 'G-R4Y4YXFHZS');
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How Node.js Garbage Collection Manages Memory - node.js</title>
+    <meta name="description" content="In a Node.js process, garbage collection is the automated process of managing memory by reclaiming space occupied by objects that are no longer needed by the application. This article explores how the V8 JavaScript engine handles memory allocation, the m">
+    <link rel="canonical" href="https://salivity.github.io/node.js/article/how-node-js-garbage-collection-manages-memory">
+    <link rel="icon" href="/node.js/favicon.ico">
+    <link rel="stylesheet" href="/node.js/css/style.css">
+    <link media="print" rel="stylesheet" href="/node.js/css/print.css">
+    <script src="/node.js/js/fuse.min.js"></script>
+    <script src="/node.js/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How Node.js Garbage Collection Manages Memory - node.js" />
+    <meta property="og:url" content="https://salivity.github.io/node.js/article/how-node-js-garbage-collection-manages-memory" />
+    <meta property="og:image:url" content="https://salivity.github.io/node.js/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/node.js/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="In a Node.js process, garbage collection is the automated process of managing memory by reclaiming space occupied by objects that are no longer needed by the application. This article explores how the V8 JavaScript engine handles memory allocation, the m" />
+    <link rel="manifest" href="/node.js/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/node.js/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>node.js</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="https://github.com/salivity" title="Github" aria-label="Go To Github Profile Page"><svg class="svg-icon" focusable="false" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 1.27a11 11 0 00-3.48 21.46c.55.09.73-.28.73-.55v-1.84c-3.03.64-3.67-1.46-3.67-1.46-.55-1.29-1.28-1.65-1.28-1.65-.92-.65.1-.65.1-.65 1.1 0 1.73 1.1 1.73 1.1.92 1.65 2.57 1.2 3.21.92a2 2 0 01.64-1.47c-2.47-.27-5.04-1.19-5.04-5.5 0-1.1.46-2.1 1.2-2.84a3.76 3.76 0 010-2.93s.91-.28 3.11 1.1c1.8-.49 3.7-.49 5.5 0 2.1-1.38 3.02-1.1 3.02-1.1a3.76 3.76 0 010 2.93c.83.74 1.2 1.74 1.2 2.94 0 4.21-2.57 5.13-5.04 5.4.45.37.82.92.82 2.02v3.03c0 .27.1.64.73.55A11 11 0 0012 1.27"></path></svg></a></li>
+                <li><a href="/node.js/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-nodejs-garbage-collection-manages-memory">How Node.js
+Garbage Collection Manages Memory</h1>
+<p>In a Node.js process, garbage collection is the automated process of
+managing memory by reclaiming space occupied by objects that are no
+longer needed by the application. This article explores how the V8
+JavaScript engine handles memory allocation, the mechanics of garbage
+collection algorithms like Scavenge and Mark-Sweep, and why developers
+must understand this system to prevent memory leaks and ensure optimal
+application performance.</p>
+<h2 id="the-v8-memory-structure">The V8 Memory Structure</h2>
+<p>Node.js runs on Google’s V8 engine, which allocates memory using a
+structure called the Resident Set. The most critical part of this
+structure for developers is the <strong>Heap</strong>, where all dynamic
+data such as objects, closures, and strings are stored. The V8 heap is
+divided into two primary segments to optimize garbage collection
+efficiency:</p>
+<ul>
+<li><strong>New Space (Young Generation):</strong> A small, highly
+active area where newly created objects are allocated. Most objects die
+here quickly.</li>
+<li><strong>Old Space (Old Generation):</strong> A larger area where
+objects that survived multiple garbage collection cycles in the New
+Space are moved.</li>
+</ul>
+<h2 id="how-garbage-collection-works">How Garbage Collection Works</h2>
+<p>V8 uses a generational garbage collection strategy, employing
+different algorithms for the New Space and Old Space based on the
+assumption that most objects die young.</p>
+<h3 id="1-minor-gc-scavenge">1. Minor GC (Scavenge)</h3>
+<p>The Minor GC focuses exclusively on the New Space. It uses the
+Cheney’s copying algorithm, which divides the New Space into two halves:
+the "To" space and the "From" space.</p>
+<ul>
+<li>New objects are allocated in the "From" space.</li>
+<li>When the "From" space fills up, the Minor GC pauses execution,
+identifies active (reachable) objects, and copies them to the "To"
+space.</li>
+<li>Objects that survive multiple Scavenge cycles are promoted to the
+Old Space.</li>
+<li>The roles of the "To" and "From" spaces are then reversed, freeing
+up the inactive space.</li>
+</ul>
+<p>This process is incredibly fast because it only processes a small,
+active subset of memory.</p>
+<h3 id="2-major-gc-mark-sweep-compact">2. Major GC
+(Mark-Sweep-Compact)</h3>
+<p>The Major GC manages the Old Space when it reaches dynamically
+calculated capacity limits. It uses three phases:</p>
+<ul>
+<li><strong>Marking:</strong> The engine traverses the object graph
+starting from "roots" (such as global variables and active stack
+pointers) to identify all reachable objects.</li>
+<li><strong>Sweeping:</strong> Unmarked objects are identified as
+unreachable garbage, and the memory addresses they occupy are added to a
+"free list" to be reused.</li>
+<li><strong>Compacting:</strong> Over time, the heap can become
+fragmented. The engine moves surviving objects closer together to
+defragment the memory, preventing allocation failures for large
+objects.</li>
+</ul>
+<h2 id="the-impact-on-nodejs-performance">The Impact on Node.js
+Performance</h2>
+<p>While garbage collection is automatic, it is not free. During garbage
+collection phases—particularly Major GC—V8 pauses the execution of
+JavaScript code. This is known as a "Stop-the-World" pause.</p>
+<p>In a single-threaded environment like Node.js, long GC pauses can
+block the event loop, causing latency spikes, dropped network
+connections, and degraded user experience. V8 mitigates this by
+performing incremental and concurrent marking, allowing the garbage
+collector to work in the background alongside the main execution
+thread.</p>
+<h2 id="preventing-memory-leaks">Preventing Memory Leaks</h2>
+<p>Garbage collection can only reclaim memory if an object is
+unreachable. A memory leak occurs when an application accidentally
+maintains references to unused objects, preventing the garbage collector
+from freeing them. Common causes of memory leaks in Node.js include:</p>
+<ul>
+<li><strong>Accidental Global Variables:</strong> Variables declared
+without <code>let</code>, <code>const</code>, or <code>var</code> attach
+to the global object and remain in memory permanently.</li>
+<li><strong>Forgotten Timers and Callbacks:</strong>
+<code>setInterval</code> or <code>setTimeout</code> calls that reference
+outer-scope variables will keep those variables in memory if the timer
+is never cleared.</li>
+<li><strong>Closures:</strong> Inner functions that retain references to
+outer-scope variables can keep large objects alive longer than
+necessary.</li>
+</ul>
+<p>By understanding the lifecycle of objects within the V8 heap, Node.js
+developers can write cleaner code, monitor memory usage effectively
+using flags like <code>--expose-gc</code>, and build highly scalable,
+low-latency applications.</p></article>
+        <div id=comments-container></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/node.js'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/node.js/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/node.js/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

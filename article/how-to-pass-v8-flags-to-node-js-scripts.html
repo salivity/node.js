@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-R4Y4YXFHZS"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+
+        function gtag(){
+            dataLayer.push(arguments);
+        }
+
+        gtag('js', new Date());
+
+        gtag('config', 'G-R4Y4YXFHZS');
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Pass V8 Flags to Node.js Scripts - node.js</title>
+    <meta name="description" content="This article provides a quick overview and step-by-step guide on how to run Node.js scripts with customized V8 engine flags. You will learn how to configure these flags directly from the command line, use environment variables for broader application, an">
+    <link rel="canonical" href="https://salivity.github.io/node.js/article/how-to-pass-v8-flags-to-node-js-scripts">
+    <link rel="icon" href="/node.js/favicon.ico">
+    <link rel="stylesheet" href="/node.js/css/style.css">
+    <link media="print" rel="stylesheet" href="/node.js/css/print.css">
+    <script src="/node.js/js/fuse.min.js"></script>
+    <script src="/node.js/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How to Pass V8 Flags to Node.js Scripts - node.js" />
+    <meta property="og:url" content="https://salivity.github.io/node.js/article/how-to-pass-v8-flags-to-node-js-scripts" />
+    <meta property="og:image:url" content="https://salivity.github.io/node.js/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/node.js/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article provides a quick overview and step-by-step guide on how to run Node.js scripts with customized V8 engine flags. You will learn how to configure these flags directly from the command line, use environment variables for broader application, an" />
+    <link rel="manifest" href="/node.js/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/node.js/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>node.js</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="https://github.com/salivity" title="Github" aria-label="Go To Github Profile Page"><svg class="svg-icon" focusable="false" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 1.27a11 11 0 00-3.48 21.46c.55.09.73-.28.73-.55v-1.84c-3.03.64-3.67-1.46-3.67-1.46-.55-1.29-1.28-1.65-1.28-1.65-.92-.65.1-.65.1-.65 1.1 0 1.73 1.1 1.73 1.1.92 1.65 2.57 1.2 3.21.92a2 2 0 01.64-1.47c-2.47-.27-5.04-1.19-5.04-5.5 0-1.1.46-2.1 1.2-2.84a3.76 3.76 0 010-2.93s.91-.28 3.11 1.1c1.8-.49 3.7-.49 5.5 0 2.1-1.38 3.02-1.1 3.02-1.1a3.76 3.76 0 010 2.93c.83.74 1.2 1.74 1.2 2.94 0 4.21-2.57 5.13-5.04 5.4.45.37.82.92.82 2.02v3.03c0 .27.1.64.73.55A11 11 0 0012 1.27"></path></svg></a></li>
+                <li><a href="/node.js/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-to-pass-v8-flags-to-nodejs-scripts">How to Pass V8 Flags to
+Node.js Scripts</h1>
+<p>This article provides a quick overview and step-by-step guide on how
+to run Node.js scripts with customized V8 engine flags. You will learn
+how to configure these flags directly from the command line, use
+environment variables for broader application, and implement them within
+npm scripts to optimize Node.js performance and memory allocation,
+specifically using the <code>--max-old-space-size</code> flag.</p>
+<h2 id="method-1-passing-v8-flags-via-command-line">Method 1: Passing V8
+Flags via Command Line</h2>
+<p>The most direct way to run a Node.js script with V8 flags is to pass
+them directly in your terminal execution command. Crucially, V8 flags
+must be placed <strong>before</strong> the filename of your script in
+the command.</p>
+<p>To increase the maximum heap memory size to 4GB (4096 megabytes) for
+a specific script, use the following syntax:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">node</span> <span class="at">--max-old-space-size</span><span class="op">=</span>4096 app.js</span></code></pre></div>
+<p>If you put the flag after the script name (e.g.,
+<code>node app.js --max-old-space-size=4096</code>), Node.js will treat
+it as a standard argument passed to your application code
+(<code>process.argv</code>) rather than a configuration for the V8
+runtime environment.</p>
+<h2 id="method-2-using-the-node_options-environment-variable">Method 2:
+Using the NODE_OPTIONS Environment Variable</h2>
+<p>If you are running your script through a task runner, a bundler, or a
+process manager like PM2, you might not have direct control over the
+<code>node</code> execution command. In these scenarios, you can use the
+<code>NODE_OPTIONS</code> environment variable.</p>
+<h3 id="on-linux-and-macos">On Linux and macOS:</h3>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="bu">export</span> <span class="va">NODE_OPTIONS</span><span class="op">=</span><span class="st">&quot;--max-old-space-size=4096&quot;</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="ex">node</span> app.js</span></code></pre></div>
+<h3 id="on-windows-command-prompt">On Windows (Command Prompt):</h3>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode cmd"><code class="sourceCode dosbat"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="bu">set</span> <span class="va">NODE_OPTIONS</span>=--max-old-space-size=4096</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>node app.js</span></code></pre></div>
+<h3 id="on-windows-powershell">On Windows (PowerShell):</h3>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode powershell"><code class="sourceCode powershell"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="va">$env</span><span class="op">:</span><span class="va">NODE_OPTIONS</span><span class="op">=</span><span class="st">&quot;--max-old-space-size=4096&quot;</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>node app<span class="op">.</span><span class="fu">js</span></span></code></pre></div>
+<p>Any Node.js process started in the same terminal session will inherit
+these V8 configurations automatically.</p>
+<h2 id="method-3-defining-flags-in-packagejson-scripts">Method 3:
+Defining Flags in package.json Scripts</h2>
+<p>For collaborative projects, it is best practice to define these
+configurations in your <code>package.json</code> file. This ensures that
+every developer on your team runs the project with the same V8 engine
+allocations.</p>
+<p>Add the flags directly to your scripts block:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;name&quot;</span><span class="fu">:</span> <span class="st">&quot;my-node-app&quot;</span><span class="fu">,</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;version&quot;</span><span class="fu">:</span> <span class="st">&quot;1.0.0&quot;</span><span class="fu">,</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;scripts&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;start&quot;</span><span class="fu">:</span> <span class="st">&quot;node --max-old-space-size=4096 index.js&quot;</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">}</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<p>You can then run the script using your package manager:</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">npm</span> run start</span></code></pre></div>
+<h2 id="how-to-verify-the-v8-flag-is-active">How to Verify the V8 Flag
+is Active</h2>
+<p>To verify that your V8 configuration changes have been applied
+successfully, you can check the memory limit programmatically inside
+your Node.js script using the <code>v8</code> built-in module:</p>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> v8 <span class="op">=</span> <span class="pp">require</span>(<span class="st">&#39;v8&#39;</span>)<span class="op">;</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> heapStats <span class="op">=</span> v8<span class="op">.</span><span class="fu">getHeapStatistics</span>()<span class="op">;</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> totalHeapSizeInGB <span class="op">=</span> (heapStats<span class="op">.</span><span class="at">heap_size_limit</span> <span class="op">/</span> <span class="dv">1024</span> <span class="op">/</span> <span class="dv">1024</span> <span class="op">/</span> <span class="dv">1024</span>)<span class="op">.</span><span class="fu">toFixed</span>(<span class="dv">2</span>)<span class="op">;</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(<span class="vs">`Maximum allowed heap size: </span><span class="sc">${</span>totalHeapSizeInGB<span class="sc">}</span><span class="vs"> GB`</span>)<span class="op">;</span></span></code></pre></div></article>
+        <div id=comments-container></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/node.js'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/node.js/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/node.js/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

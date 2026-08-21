@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-R4Y4YXFHZS"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+
+        function gtag(){
+            dataLayer.push(arguments);
+        }
+
+        gtag('js', new Date());
+
+        gtag('config', 'G-R4Y4YXFHZS');
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Node.js Performance Tracking with Mark and Measure - node.js</title>
+    <meta name="description" content="Node.js provides robust, built-in tools for monitoring application performance through the Performance Measurement APIs, specifically using performance.mark() and performance.measure(). This article explores how these APIs work, demonstrating how to pinp">
+    <link rel="canonical" href="https://salivity.github.io/node.js/article/node-js-performance-tracking-with-mark-and-measure">
+    <link rel="icon" href="/node.js/favicon.ico">
+    <link rel="stylesheet" href="/node.js/css/style.css">
+    <link media="print" rel="stylesheet" href="/node.js/css/print.css">
+    <script src="/node.js/js/fuse.min.js"></script>
+    <script src="/node.js/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Node.js Performance Tracking with Mark and Measure - node.js" />
+    <meta property="og:url" content="https://salivity.github.io/node.js/article/node-js-performance-tracking-with-mark-and-measure" />
+    <meta property="og:image:url" content="https://salivity.github.io/node.js/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/node.js/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Node.js provides robust, built-in tools for monitoring application performance through the Performance Measurement APIs, specifically using performance.mark() and performance.measure(). This article explores how these APIs work, demonstrating how to pinp" />
+    <link rel="manifest" href="/node.js/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/node.js/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>node.js</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="https://github.com/salivity" title="Github" aria-label="Go To Github Profile Page"><svg class="svg-icon" focusable="false" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 1.27a11 11 0 00-3.48 21.46c.55.09.73-.28.73-.55v-1.84c-3.03.64-3.67-1.46-3.67-1.46-.55-1.29-1.28-1.65-1.28-1.65-.92-.65.1-.65.1-.65 1.1 0 1.73 1.1 1.73 1.1.92 1.65 2.57 1.2 3.21.92a2 2 0 01.64-1.47c-2.47-.27-5.04-1.19-5.04-5.5 0-1.1.46-2.1 1.2-2.84a3.76 3.76 0 010-2.93s.91-.28 3.11 1.1c1.8-.49 3.7-.49 5.5 0 2.1-1.38 3.02-1.1 3.02-1.1a3.76 3.76 0 010 2.93c.83.74 1.2 1.74 1.2 2.94 0 4.21-2.57 5.13-5.04 5.4.45.37.82.92.82 2.02v3.03c0 .27.1.64.73.55A11 11 0 0012 1.27"></path></svg></a></li>
+                <li><a href="/node.js/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="nodejs-performance-tracking-with-mark-and-measure">Node.js
+Performance Tracking with Mark and Measure</h1>
+<p>Node.js provides robust, built-in tools for monitoring application
+performance through the Performance Measurement APIs, specifically using
+<code>performance.mark()</code> and <code>performance.measure()</code>.
+This article explores how these APIs work, demonstrating how to pinpoint
+execution bottlenecks by establishing high-resolution timestamps,
+calculating the exact duration between specific application events, and
+retrieving these metrics using performance observers.</p>
+<h2 id="understanding-perf_hooks">Understanding perf_hooks</h2>
+<p>Node.js exposes its performance measurement capabilities through the
+native <code>perf_hooks</code> module. This module implements the W3C
+User Timing Level 2 specification, allowing developers to collect
+high-resolution time metrics that are consistent with browser-based
+performance tooling.</p>
+<p>To use these APIs, you first need to import the
+<code>performance</code> object:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> { <span class="bu">performance</span> } <span class="op">=</span> <span class="pp">require</span>(<span class="st">&#39;perf_hooks&#39;</span>)<span class="op">;</span></span></code></pre></div>
+<h2 id="how-performancemark-works">How performance.mark() Works</h2>
+<p>The <code>performance.mark()</code> method creates a local timestamp
+in the performance timeline. This timestamp is highly accurate,
+utilizing <code>DOMHighResTimeStamp</code> which measures time in
+milliseconds with microsecond precision.</p>
+<p>When you call <code>performance.mark('mark-name')</code>, Node.js
+records the exact time that line of code executed. You can place these
+marks before and after complex database queries, API calls, or heavy CPU
+operations to establish boundaries.</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="bu">performance</span><span class="op">.</span><span class="fu">mark</span>(<span class="st">&#39;start-database-query&#39;</span>)<span class="op">;</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="co">// ... database operation occurs ...</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="bu">performance</span><span class="op">.</span><span class="fu">mark</span>(<span class="st">&#39;end-database-query&#39;</span>)<span class="op">;</span></span></code></pre></div>
+<h2 id="how-performancemeasure-works">How performance.measure()
+Works</h2>
+<p>Once you have established start and end marks, you can calculate the
+elapsed time between them using <code>performance.measure()</code>.</p>
+<p>The <code>performance.measure(measureName, startMark, endMark)</code>
+method calculates the duration between the two specified marks, creates
+a new entry in the performance timeline, and stores the result.</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="bu">performance</span><span class="op">.</span><span class="fu">measure</span>(</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="st">&#39;Database Query Duration&#39;</span><span class="op">,</span> </span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="st">&#39;start-database-query&#39;</span><span class="op">,</span> </span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="st">&#39;end-database-query&#39;</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>)<span class="op">;</span></span></code></pre></div>
+<p>If you omit the start and end marks,
+<code>performance.measure()</code> will calculate the time elapsed from
+the very start of the Node.js process to the moment the measure function
+is called.</p>
+<h2 id="retrieving-performance-metrics">Retrieving Performance
+Metrics</h2>
+<p>Creating marks and measures is only useful if you can retrieve and
+analyze the data. Node.js provides two main ways to access these
+measurements: direct retrieval and the <code>PerformanceObserver</code>
+API.</p>
+<h3 id="1-using-performanceobserver-recommended">1. Using
+PerformanceObserver (Recommended)</h3>
+<p>The <code>PerformanceObserver</code> class allows you to subscribe to
+the performance timeline asynchronously. Whenever a new measure is
+created, the observer's callback is triggered. This is the most
+efficient way to collect metrics without blocking the main event
+loop.</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> { <span class="bu">performance</span><span class="op">,</span> <span class="bu">PerformanceObserver</span> } <span class="op">=</span> <span class="pp">require</span>(<span class="st">&#39;perf_hooks&#39;</span>)<span class="op">;</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="co">// Initialize the observer</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> obs <span class="op">=</span> <span class="kw">new</span> <span class="bu">PerformanceObserver</span>((items) <span class="kw">=&gt;</span> {</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  items<span class="op">.</span><span class="fu">getEntries</span>()<span class="op">.</span><span class="fu">forEach</span>((entry) <span class="kw">=&gt;</span> {</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>    <span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(<span class="vs">`Name: </span><span class="sc">${</span>entry<span class="op">.</span><span class="at">name</span><span class="sc">}</span><span class="vs">`</span>)<span class="op">;</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>    <span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(<span class="vs">`Duration: </span><span class="sc">${</span>entry<span class="op">.</span><span class="at">duration</span><span class="op">.</span><span class="fu">toFixed</span>(<span class="dv">4</span>)<span class="sc">}</span><span class="vs"> ms`</span>)<span class="op">;</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>    <span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(<span class="vs">`Start Time: </span><span class="sc">${</span>entry<span class="op">.</span><span class="at">startTime</span><span class="sc">}</span><span class="vs">`</span>)<span class="op">;</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>  })<span class="op">;</span></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>})<span class="op">;</span></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a><span class="co">// Observe &#39;measure&#39; entry types</span></span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>obs<span class="op">.</span><span class="fu">observe</span>({ <span class="dt">entryTypes</span><span class="op">:</span> [<span class="st">&#39;measure&#39;</span>]<span class="op">,</span> <span class="dt">buffered</span><span class="op">:</span> <span class="kw">true</span> })<span class="op">;</span></span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a><span class="co">// Run the monitored operation</span></span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a><span class="bu">performance</span><span class="op">.</span><span class="fu">mark</span>(<span class="st">&#39;start-process&#39;</span>)<span class="op">;</span></span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a><span class="pp">setTimeout</span>(() <span class="kw">=&gt;</span> {</span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>  <span class="bu">performance</span><span class="op">.</span><span class="fu">mark</span>(<span class="st">&#39;end-process&#39;</span>)<span class="op">;</span></span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a>  <span class="bu">performance</span><span class="op">.</span><span class="fu">measure</span>(<span class="st">&#39;Total Process Time&#39;</span><span class="op">,</span> <span class="st">&#39;start-process&#39;</span><span class="op">,</span> <span class="st">&#39;end-process&#39;</span>)<span class="op">;</span></span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a>}<span class="op">,</span> <span class="dv">500</span>)<span class="op">;</span></span></code></pre></div>
+<h3 id="2-querying-the-performance-timeline">2. Querying the Performance
+Timeline</h3>
+<p>Alternatively, you can retrieve entries synchronously using the
+<code>performance.getEntriesByName()</code> or
+<code>performance.getEntriesByType()</code> methods.</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Retrieve all measures</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> measures <span class="op">=</span> <span class="bu">performance</span><span class="op">.</span><span class="fu">getEntriesByType</span>(<span class="st">&#39;measure&#39;</span>)<span class="op">;</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="co">// Retrieve a specific measure by name</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> databaseMeasures <span class="op">=</span> <span class="bu">performance</span><span class="op">.</span><span class="fu">getEntriesByName</span>(<span class="st">&#39;Database Query Duration&#39;</span>)<span class="op">;</span></span></code></pre></div>
+<h2 id="clearing-the-timeline">Clearing the Timeline</h2>
+<p>To prevent memory leaks in long-running Node.js processes, it is
+important to clean up the performance timeline once you have processed
+the metrics. You can clear specific marks and measures using:</p>
+<ul>
+<li><code>performance.clearMarks('mark-name')</code> (or call without
+arguments to clear all marks)</li>
+<li><code>performance.clearMeasures('measure-name')</code> (or call
+without arguments to clear all measures)</li>
+</ul></article>
+        <div id=comments-container></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/node.js'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/node.js/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/node.js/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

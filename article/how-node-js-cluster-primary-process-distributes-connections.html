@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-R4Y4YXFHZS"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+
+        function gtag(){
+            dataLayer.push(arguments);
+        }
+
+        gtag('js', new Date());
+
+        gtag('config', 'G-R4Y4YXFHZS');
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How Node.js Cluster Primary Process Distributes Connections - node.js</title>
+    <meta name="description" content="This article explains the role of the primary process in the Node.js cluster module, focusing on how it manages and distributes incoming network connections among multiple worker processes. You will learn about the default Round-Robin load-balancing stra">
+    <link rel="canonical" href="https://salivity.github.io/node.js/article/how-node-js-cluster-primary-process-distributes-connections">
+    <link rel="icon" href="/node.js/favicon.ico">
+    <link rel="stylesheet" href="/node.js/css/style.css">
+    <link media="print" rel="stylesheet" href="/node.js/css/print.css">
+    <script src="/node.js/js/fuse.min.js"></script>
+    <script src="/node.js/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How Node.js Cluster Primary Process Distributes Connections - node.js" />
+    <meta property="og:url" content="https://salivity.github.io/node.js/article/how-node-js-cluster-primary-process-distributes-connections" />
+    <meta property="og:image:url" content="https://salivity.github.io/node.js/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/node.js/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article explains the role of the primary process in the Node.js cluster module, focusing on how it manages and distributes incoming network connections among multiple worker processes. You will learn about the default Round-Robin load-balancing stra" />
+    <link rel="manifest" href="/node.js/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/node.js/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>node.js</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="https://github.com/salivity" title="Github" aria-label="Go To Github Profile Page"><svg class="svg-icon" focusable="false" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 1.27a11 11 0 00-3.48 21.46c.55.09.73-.28.73-.55v-1.84c-3.03.64-3.67-1.46-3.67-1.46-.55-1.29-1.28-1.65-1.28-1.65-.92-.65.1-.65.1-.65 1.1 0 1.73 1.1 1.73 1.1.92 1.65 2.57 1.2 3.21.92a2 2 0 01.64-1.47c-2.47-.27-5.04-1.19-5.04-5.5 0-1.1.46-2.1 1.2-2.84a3.76 3.76 0 010-2.93s.91-.28 3.11 1.1c1.8-.49 3.7-.49 5.5 0 2.1-1.38 3.02-1.1 3.02-1.1a3.76 3.76 0 010 2.93c.83.74 1.2 1.74 1.2 2.94 0 4.21-2.57 5.13-5.04 5.4.45.37.82.92.82 2.02v3.03c0 .27.1.64.73.55A11 11 0 0012 1.27"></path></svg></a></li>
+                <li><a href="/node.js/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-nodejs-cluster-primary-process-distributes-connections">How
+Node.js Cluster Primary Process Distributes Connections</h1>
+<p>This article explains the role of the primary process in the Node.js
+cluster module, focusing on how it manages and distributes incoming
+network connections among multiple worker processes. You will learn
+about the default Round-Robin load-balancing strategy, the alternative
+operating system-mediated approach, and why the primary process is
+essential for scaling Node.js applications on multi-core systems.</p>
+<h2 id="the-role-of-the-primary-process">The Role of the Primary
+Process</h2>
+<p>Node.js runs on a single thread by default. To utilize multi-core
+systems, the <code>cluster</code> module allows you to spawn a cluster
+of worker processes that share the same server ports.</p>
+<p>In this architecture, the <strong>primary process</strong> (formerly
+referred to as the master process) acts as the orchestrator. It does not
+handle application logic or process individual requests. Instead, its
+main responsibility is to spin up worker processes, monitor their
+health, and distribute incoming network connections to them.</p>
+<h2 id="connection-distribution-strategies">Connection Distribution
+Strategies</h2>
+<p>The primary process distributes incoming network connections using
+one of two distinct load-balancing methods:</p>
+<h3 id="1-the-round-robin-approach-default">1. The Round-Robin Approach
+(Default)</h3>
+<p>On all platforms except Windows, Node.js uses a Round-Robin algorithm
+to distribute connections.</p>
+<ul>
+<li><strong>How it works:</strong> The primary process binds to the
+target port (e.g., port 8080) and listens for incoming connections. When
+a new connection arrives, the primary process accepts it and hands off
+the TCP socket handle to an active worker process via IPC (Inter-Process
+Communication).</li>
+<li><strong>Advantage:</strong> This method ensures a highly even
+distribution of the workload across all available CPU cores, preventing
+any single worker from becoming overloaded while others sit idle.</li>
+</ul>
+<h3 id="2-the-shared-socket-approach-os-native">2. The Shared Socket
+Approach (OS-Native)</h3>
+<p>The second method relies on the underlying operating system to
+distribute connections. This is the default behavior on Windows
+systems.</p>
+<ul>
+<li><strong>How it works:</strong> The primary process creates the
+network socket and shares the active socket handle directly with all the
+worker processes. The workers then attempt to accept incoming
+connections directly from the OS-level queue.</li>
+<li><strong>Disadvantage:</strong> While theoretically efficient, in
+practice, the operating system's scheduler often distributes connections
+unevenly. A few worker processes may end up handling the vast majority
+of the traffic, leading to poor resource utilization.</li>
+</ul>
+<h2 id="key-benefits-of-primary-process-distribution">Key Benefits of
+Primary Process Distribution</h2>
+<p>Having the primary process handle connection distribution offers
+several architectural benefits:</p>
+<ul>
+<li><strong>Elimination of Port Conflicts:</strong> Since only the
+primary process actually binds to the network port, multiple worker
+processes can run simultaneously without triggering "address already in
+use" (EADDRINUSE) errors.</li>
+<li><strong>Process Isolation:</strong> If a worker process crashes due
+to an unhandled exception, the primary process can immediately spawn a
+replacement worker without interrupting the main network port
+listener.</li>
+<li><strong>Centralized Coordination:</strong> It simplifies application
+scaling by decoupling the network entry point from the actual execution
+of business logic.</li>
+</ul></article>
+        <div id=comments-container></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/node.js'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/node.js/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/node.js/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-R4Y4YXFHZS"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+
+        function gtag(){
+            dataLayer.push(arguments);
+        }
+
+        gtag('js', new Date());
+
+        gtag('config', 'G-R4Y4YXFHZS');
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How Node.js Resolves Duplicate Dependency Versions - node.js</title>
+    <meta name="description" content="When building Node.js applications, different packages in your dependency tree often require different versions of the same library. This article explains how Node.js and package managers like npm resolve these version conflicts by utilizing a flattened">
+    <link rel="canonical" href="https://salivity.github.io/node.js/article/how-node-js-resolves-duplicate-dependency-versions">
+    <link rel="icon" href="/node.js/favicon.ico">
+    <link rel="stylesheet" href="/node.js/css/style.css">
+    <link media="print" rel="stylesheet" href="/node.js/css/print.css">
+    <script src="/node.js/js/fuse.min.js"></script>
+    <script src="/node.js/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How Node.js Resolves Duplicate Dependency Versions - node.js" />
+    <meta property="og:url" content="https://salivity.github.io/node.js/article/how-node-js-resolves-duplicate-dependency-versions" />
+    <meta property="og:image:url" content="https://salivity.github.io/node.js/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/node.js/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="When building Node.js applications, different packages in your dependency tree often require different versions of the same library. This article explains how Node.js and package managers like npm resolve these version conflicts by utilizing a flattened" />
+    <link rel="manifest" href="/node.js/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/node.js/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>node.js</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="https://github.com/salivity" title="Github" aria-label="Go To Github Profile Page"><svg class="svg-icon" focusable="false" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 1.27a11 11 0 00-3.48 21.46c.55.09.73-.28.73-.55v-1.84c-3.03.64-3.67-1.46-3.67-1.46-.55-1.29-1.28-1.65-1.28-1.65-.92-.65.1-.65.1-.65 1.1 0 1.73 1.1 1.73 1.1.92 1.65 2.57 1.2 3.21.92a2 2 0 01.64-1.47c-2.47-.27-5.04-1.19-5.04-5.5 0-1.1.46-2.1 1.2-2.84a3.76 3.76 0 010-2.93s.91-.28 3.11 1.1c1.8-.49 3.7-.49 5.5 0 2.1-1.38 3.02-1.1 3.02-1.1a3.76 3.76 0 010 2.93c.83.74 1.2 1.74 1.2 2.94 0 4.21-2.57 5.13-5.04 5.4.45.37.82.92.82 2.02v3.03c0 .27.1.64.73.55A11 11 0 0012 1.27"></path></svg></a></li>
+                <li><a href="/node.js/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-nodejs-resolves-duplicate-dependency-versions">How Node.js
+Resolves Duplicate Dependency Versions</h1>
+<p>When building Node.js applications, different packages in your
+dependency tree often require different versions of the same library.
+This article explains how Node.js and package managers like npm resolve
+these version conflicts by utilizing a flattened dependency tree,
+dependency hoisting, and nested <code>node_modules</code> directories to
+ensure every module receives its correct version.</p>
+<h2 id="the-challenge-of-duplicate-dependencies">The Challenge of
+Duplicate Dependencies</h2>
+<p>In a complex project, you might install Package A (which requires
+Library X version 1.0.0) and Package B (which requires Library X version
+2.0.0). Because JavaScript runs in a single global context for each
+module, Node.js must ensure that Package A and Package B each access
+their required version of Library X without interfering with each
+other.</p>
+<h2 id="how-package-managers-flatten-the-tree-hoisting">How Package
+Managers Flatten the Tree (Hoisting)</h2>
+<p>To avoid deeply nested and redundant folder structures, modern
+package managers (npm, Yarn, and pnpm) use a technique called
+<strong>hoisting</strong> to flatten the dependency tree.</p>
+<ol type="1">
+<li><strong>Root Installation:</strong> The package manager attempts to
+install the most commonly requested version, or the version specified in
+your root <code>package.json</code>, directly at the root
+<code>node_modules/</code> folder.</li>
+<li><strong>Nested Isolation:</strong> When a conflicting version of the
+same package is required by another dependency, that conflicting version
+cannot be placed in the root. Instead, it is installed inside a nested
+<code>node_modules/</code> folder directly within the dependency that
+requires it.</li>
+</ol>
+<p>For example, if the root uses <code>Library X v2.0.0</code>, but
+<code>Package A</code> requires <code>Library X v1.0.0</code>, the file
+structure looks like this:</p>
+<pre class="text"><code>my-app/
+├── node_modules/
+│   ├── library-x/ (v2.0.0 - Hoisted to root)
+│   ├── package-b/ (Uses root library-x v2.0.0)
+│   └── package-a/
+│       └── node_modules/
+│           └── library-x/ (v1.0.0 - Nested local version)</code></pre>
+<h2 id="how-the-nodejs-resolution-algorithm-locates-modules">How the
+Node.js Resolution Algorithm Locates Modules</h2>
+<p>When Node.js encounters a <code>require('library-x')</code> or
+<code>import 'library-x'</code> statement, it uses a lookup algorithm
+that traverses the directory tree upward.</p>
+<ol type="1">
+<li><strong>Current Directory Check:</strong> Node.js first looks for a
+<code>node_modules</code> folder in the directory of the file executing
+the <code>require()</code> statement.</li>
+<li><strong>Parent Directory Traversal:</strong> If the package is not
+found, Node.js moves up to the parent directory and looks for
+<code>node_modules</code> there.</li>
+<li><strong>Recursive Search:</strong> This search continues recursively
+up the directory tree until it reaches the root directory of the file
+system.</li>
+</ol>
+<h3 id="how-this-resolves-duplicates">How This Resolves Duplicates</h3>
+<p>Using the directory structure above:</p>
+<ul>
+<li>When a file inside <code>package-a</code> calls
+<code>require('library-x')</code>, Node.js looks in
+<code>my-app/node_modules/package-a/node_modules/</code>. It finds
+<strong>v1.0.0</strong> and loads it.</li>
+<li>When a file inside <code>package-b</code> calls
+<code>require('library-x')</code>, Node.js looks in
+<code>my-app/node_modules/package-b/node_modules/</code>. Finding
+nothing there, it moves up to <code>my-app/node_modules/</code>, finds
+<strong>v2.0.0</strong>, and loads it.</li>
+</ul>
+<p>This lookup strategy guarantees that even when duplicate versions of
+a package exist in the dependency tree, each module successfully loads
+the exact version compatibility demands.</p>
+<h2 id="the-role-of-lockfiles-in-dependency-consistency">The Role of
+Lockfiles in Dependency Consistency</h2>
+<p>Because the physical layout of <code>node_modules</code> determines
+which version gets resolved, package managers use lockfiles
+(<code>package-lock.json</code>, <code>yarn.lock</code>, or
+<code>pnpm-lock.yaml</code>). The lockfile records the exact tree
+structure and resolution path of every dependency. This ensures that the
+duplication resolution, hoisting decisions, and nested folder structures
+remain identical across all development, staging, and production
+environments.</p></article>
+        <div id=comments-container></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/node.js'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/node.js/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/node.js/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

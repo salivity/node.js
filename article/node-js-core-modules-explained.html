@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-R4Y4YXFHZS"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+
+        function gtag(){
+            dataLayer.push(arguments);
+        }
+
+        gtag('js', new Date());
+
+        gtag('config', 'G-R4Y4YXFHZS');
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Node.js Core Modules Explained - node.js</title>
+    <meta name="description" content="Node.js comes with a powerful set of built-in libraries, known as core modules, that allow developers to build robust server-side applications without relying on external packages. This article provides a clear, straight-to-the-point guide to the most es">
+    <link rel="canonical" href="https://salivity.github.io/node.js/article/node-js-core-modules-explained">
+    <link rel="icon" href="/node.js/favicon.ico">
+    <link rel="stylesheet" href="/node.js/css/style.css">
+    <link media="print" rel="stylesheet" href="/node.js/css/print.css">
+    <script src="/node.js/js/fuse.min.js"></script>
+    <script src="/node.js/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Node.js Core Modules Explained - node.js" />
+    <meta property="og:url" content="https://salivity.github.io/node.js/article/node-js-core-modules-explained" />
+    <meta property="og:image:url" content="https://salivity.github.io/node.js/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/node.js/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Node.js comes with a powerful set of built-in libraries, known as core modules, that allow developers to build robust server-side applications without relying on external packages. This article provides a clear, straight-to-the-point guide to the most es" />
+    <link rel="manifest" href="/node.js/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/node.js/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>node.js</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="https://github.com/salivity" title="Github" aria-label="Go To Github Profile Page"><svg class="svg-icon" focusable="false" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 1.27a11 11 0 00-3.48 21.46c.55.09.73-.28.73-.55v-1.84c-3.03.64-3.67-1.46-3.67-1.46-.55-1.29-1.28-1.65-1.28-1.65-.92-.65.1-.65.1-.65 1.1 0 1.73 1.1 1.73 1.1.92 1.65 2.57 1.2 3.21.92a2 2 0 01.64-1.47c-2.47-.27-5.04-1.19-5.04-5.5 0-1.1.46-2.1 1.2-2.84a3.76 3.76 0 010-2.93s.91-.28 3.11 1.1c1.8-.49 3.7-.49 5.5 0 2.1-1.38 3.02-1.1 3.02-1.1a3.76 3.76 0 010 2.93c.83.74 1.2 1.74 1.2 2.94 0 4.21-2.57 5.13-5.04 5.4.45.37.82.92.82 2.02v3.03c0 .27.1.64.73.55A11 11 0 0012 1.27"></path></svg></a></li>
+                <li><a href="/node.js/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="nodejs-core-modules-explained">Node.js Core Modules
+Explained</h1>
+<p>Node.js comes with a powerful set of built-in libraries, known as
+core modules, that allow developers to build robust server-side
+applications without relying on external packages. This article provides
+a clear, straight-to-the-point guide to the most essential
+out-of-the-box Node.js modules, explaining what they do and how they
+simplify tasks like file handling, networking, utility operations, and
+system interactions.</p>
+<h3 id="file-system-and-path-management">File System and Path
+Management</h3>
+<p>These modules allow you to interact with the local operating system's
+files and directory paths securely and efficiently.</p>
+<ul>
+<li><strong><code>fs</code> (File System):</strong> This module is
+crucial for reading, writing, updating, deleting, and renaming files or
+directories. It provides both synchronous (blocking) and asynchronous
+(non-blocking) methods, as well as a modern Promise-based API
+(<code>fs/promises</code>).</li>
+<li><strong><code>path</code>:</strong> Handling file paths across
+different operating systems (Windows vs. POSIX) can be tricky due to
+different path separators. The <code>path</code> module provides
+utilities for joining, resolving, and normalizing directory and file
+paths.</li>
+</ul>
+<h3 id="networking-and-web-protocols">Networking and Web Protocols</h3>
+<p>Node.js is designed for network applications, and its networking
+modules form the backbone of modern web servers.</p>
+<ul>
+<li><strong><code>http</code> and <code>https</code>:</strong> These
+modules allow Node.js to transfer data over HTTP and HTTPS protocols.
+They are used to create web servers capable of listening to incoming
+requests and sending responses, as well as making external API
+requests.</li>
+<li><strong><code>url</code>:</strong> This module provides utilities
+for URL resolution and parsing, allowing developers to easily extract
+query parameters, hostnames, protocols, and port numbers from web
+addresses.</li>
+</ul>
+<h3 id="system-and-process-control">System and Process Control</h3>
+<p>When building backend services, accessing system metrics and
+controlling the running application process is essential.</p>
+<ul>
+<li><strong><code>os</code>:</strong> Provides direct access to
+operating-system-related utility methods. You can retrieve information
+about CPU architecture, free memory, total memory, network interfaces,
+and system uptime.</li>
+<li><strong><code>process</code>:</strong> This is a global object (it
+does not require an <code>import</code> or <code>require</code>
+statement) that provides information about, and control over, the
+current Node.js process. It is commonly used to read environment
+variables (<code>process.env</code>), handle exit codes, and manage
+process signals.</li>
+</ul>
+<h3 id="event-driven-architecture-and-utilities">Event-Driven
+Architecture and Utilities</h3>
+<p>Node.js relies on an asynchronous event-driven architecture, which is
+powered by these internal helper modules.</p>
+<ul>
+<li><strong><code>events</code>:</strong> Most core modules inherit from
+this module. It features the <code>EventEmitter</code> class, which
+allows developers to create, trigger, and listen to custom events,
+facilitating decoupling in complex systems.</li>
+<li><strong><code>util</code>:</strong> Designed to support the needs of
+internal APIs. It includes functions for formatting strings, debugging,
+type-checking, and converting callback-based functions into
+Promise-based functions via <code>util.promisify</code>.</li>
+<li><strong><code>crypto</code>:</strong> Provides robust cryptographic
+functionality. It includes wrappers for OpenSSL's hash, HMAC, cipher,
+decipher, sign, and verify methods, making it simple to secure
+passwords, encrypt data, and generate secure random values.</li>
+</ul></article>
+        <div id=comments-container></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/node.js'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/node.js/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/node.js/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

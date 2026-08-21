@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-R4Y4YXFHZS"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+
+        function gtag(){
+            dataLayer.push(arguments);
+        }
+
+        gtag('js', new Date());
+
+        gtag('config', 'G-R4Y4YXFHZS');
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Why Node.js TypeScript Type Stripping Matters - node.js</title>
+    <meta name="description" content="Node.js has introduced an experimental feature that allows the runtime to execute TypeScript files directly by stripping out their type annotations. This article provides an overview of this milestone feature, explaining how it works, its major benefits">
+    <link rel="canonical" href="https://salivity.github.io/node.js/article/why-node-js-typescript-type-stripping-matters">
+    <link rel="icon" href="/node.js/favicon.ico">
+    <link rel="stylesheet" href="/node.js/css/style.css">
+    <link media="print" rel="stylesheet" href="/node.js/css/print.css">
+    <script src="/node.js/js/fuse.min.js"></script>
+    <script src="/node.js/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Why Node.js TypeScript Type Stripping Matters - node.js" />
+    <meta property="og:url" content="https://salivity.github.io/node.js/article/why-node-js-typescript-type-stripping-matters" />
+    <meta property="og:image:url" content="https://salivity.github.io/node.js/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/node.js/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Node.js has introduced an experimental feature that allows the runtime to execute TypeScript files directly by stripping out their type annotations. This article provides an overview of this milestone feature, explaining how it works, its major benefits" />
+    <link rel="manifest" href="/node.js/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/node.js/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>node.js</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="https://github.com/salivity" title="Github" aria-label="Go To Github Profile Page"><svg class="svg-icon" focusable="false" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 1.27a11 11 0 00-3.48 21.46c.55.09.73-.28.73-.55v-1.84c-3.03.64-3.67-1.46-3.67-1.46-.55-1.29-1.28-1.65-1.28-1.65-.92-.65.1-.65.1-.65 1.1 0 1.73 1.1 1.73 1.1.92 1.65 2.57 1.2 3.21.92a2 2 0 01.64-1.47c-2.47-.27-5.04-1.19-5.04-5.5 0-1.1.46-2.1 1.2-2.84a3.76 3.76 0 010-2.93s.91-.28 3.11 1.1c1.8-.49 3.7-.49 5.5 0 2.1-1.38 3.02-1.1 3.02-1.1a3.76 3.76 0 010 2.93c.83.74 1.2 1.74 1.2 2.94 0 4.21-2.57 5.13-5.04 5.4.45.37.82.92.82 2.02v3.03c0 .27.1.64.73.55A11 11 0 0012 1.27"></path></svg></a></li>
+                <li><a href="/node.js/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="why-nodejs-typescript-type-stripping-matters">Why Node.js
+TypeScript Type Stripping Matters</h1>
+<p>Node.js has introduced an experimental feature that allows the
+runtime to execute TypeScript files directly by stripping out their type
+annotations. This article provides an overview of this milestone
+feature, explaining how it works, its major benefits for developers, and
+its broader impact on the JavaScript and TypeScript ecosystems.</p>
+<h2 id="what-is-typescript-type-stripping-in-nodejs">What is TypeScript
+Type Stripping in Node.js?</h2>
+<p>Traditionally, running TypeScript in Node.js required a build step to
+compile TypeScript (<code>.ts</code>) into JavaScript (<code>.js</code>)
+using the TypeScript compiler (<code>tsc</code>), or using third-party
+runners like <code>ts-node</code> or <code>tsx</code>.</p>
+<p>With the introduction of the <code>--experimental-strip-types</code>
+flag, Node.js can now execute TypeScript files directly. It achieves
+this by internally transforming the code to remove TypeScript-specific
+syntax—such as type annotations, interfaces, and generics—leaving behind
+clean, standard JavaScript that the V8 engine can execute
+immediately.</p>
+<h2 id="why-this-feature-is-significant">Why This Feature is
+Significant</h2>
+<h3 id="1-eliminating-the-build-step-for-local-development">1.
+Eliminating the Build Step for Local Development</h3>
+<p>The most immediate benefit is the elimination of boilerplate and
+build steps for running simple scripts or starting local development
+servers. Developers no longer need to configure complex build pipelines
+just to run a TypeScript file.</p>
+<h3 id="2-reduced-tooling-and-dependency-overhead">2. Reduced Tooling
+and Dependency Overhead</h3>
+<p>By natively supporting TypeScript execution, Node.js reduces the
+reliance on external packages like <code>ts-node</code>,
+<code>tsx</code>, or <code>esbuild</code> for basic tasks. This leads to
+lighter <code>node_modules</code> folders, faster project
+initialization, and fewer dependencies to maintain and audit for
+security vulnerabilities.</p>
+<h3 id="3-faster-execution-times">3. Faster Execution Times</h3>
+<p>Because Node.js only <em>strips</em> the types rather than performing
+full type-checking, the startup time is exceptionally fast.
+Type-checking is historically the slowest part of the TypeScript
+compilation process. By separating execution from type-checking,
+developers get instant feedback during runtime.</p>
+<h3 id="4-competitive-parity-with-modern-runtimes">4. Competitive Parity
+with Modern Runtimes</h3>
+<p>Alternative JavaScript runtimes like Deno and Bun have long offered
+out-of-the-box TypeScript support as a core selling point. By bringing
+native TypeScript support to Node.js, the platform ensures it remains
+competitive and modern, aligning with contemporary developer
+expectations.</p>
+<h2 id="key-limitations-to-keep-in-mind">Key Limitations to Keep in
+Mind</h2>
+<p>While powerful, this feature has specific boundaries:</p>
+<ul>
+<li><strong>No Type Checking:</strong> Node.js will run the code even if
+there are type errors. Developers must still run
+<code>tsc --noEmit</code> in their CI/CD pipelines or IDEs to ensure
+type safety.</li>
+<li><strong>Syntax Restrictions:</strong> Certain TypeScript features
+that require code generation rather than just type stripping (such as
+<code>enums</code>, <code>namespaces</code>, or parameter properties)
+are either restricted or require specific handling, as they cannot be
+simply erased to form valid JavaScript.</li>
+</ul>
+<p>Overall, the experimental type stripping feature represents a massive
+step forward in making TypeScript a first-class citizen in the Node.js
+ecosystem, drastically simplifying the developer experience.</p></article>
+        <div id=comments-container></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/node.js'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/node.js/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/node.js/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-R4Y4YXFHZS"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+
+        function gtag(){
+            dataLayer.push(arguments);
+        }
+
+        gtag('js', new Date());
+
+        gtag('config', 'G-R4Y4YXFHZS');
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Find Node.js Memory Leaks with v8.getHeapStatistics - node.js</title>
+    <meta name="description" content="Node.js applications can suffer from performance degradation and crashes due to memory leaks, which occur when allocated memory is not properly garbage collected. This article demonstrates how to programmatically monitor, detect, and trace these leaks us">
+    <link rel="canonical" href="https://salivity.github.io/node.js/article/find-node-js-memory-leaks-with-v8-getheapstatistics">
+    <link rel="icon" href="/node.js/favicon.ico">
+    <link rel="stylesheet" href="/node.js/css/style.css">
+    <link media="print" rel="stylesheet" href="/node.js/css/print.css">
+    <script src="/node.js/js/fuse.min.js"></script>
+    <script src="/node.js/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Find Node.js Memory Leaks with v8.getHeapStatistics - node.js" />
+    <meta property="og:url" content="https://salivity.github.io/node.js/article/find-node-js-memory-leaks-with-v8-getheapstatistics" />
+    <meta property="og:image:url" content="https://salivity.github.io/node.js/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/node.js/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Node.js applications can suffer from performance degradation and crashes due to memory leaks, which occur when allocated memory is not properly garbage collected. This article demonstrates how to programmatically monitor, detect, and trace these leaks us" />
+    <link rel="manifest" href="/node.js/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/node.js/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>node.js</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="https://github.com/salivity" title="Github" aria-label="Go To Github Profile Page"><svg class="svg-icon" focusable="false" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 1.27a11 11 0 00-3.48 21.46c.55.09.73-.28.73-.55v-1.84c-3.03.64-3.67-1.46-3.67-1.46-.55-1.29-1.28-1.65-1.28-1.65-.92-.65.1-.65.1-.65 1.1 0 1.73 1.1 1.73 1.1.92 1.65 2.57 1.2 3.21.92a2 2 0 01.64-1.47c-2.47-.27-5.04-1.19-5.04-5.5 0-1.1.46-2.1 1.2-2.84a3.76 3.76 0 010-2.93s.91-.28 3.11 1.1c1.8-.49 3.7-.49 5.5 0 2.1-1.38 3.02-1.1 3.02-1.1a3.76 3.76 0 010 2.93c.83.74 1.2 1.74 1.2 2.94 0 4.21-2.57 5.13-5.04 5.4.45.37.82.92.82 2.02v3.03c0 .27.1.64.73.55A11 11 0 0012 1.27"></path></svg></a></li>
+                <li><a href="/node.js/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="find-nodejs-memory-leaks-with-v8getheapstatistics">Find Node.js
+Memory Leaks with v8.getHeapStatistics</h1>
+<p>Node.js applications can suffer from performance degradation and
+crashes due to memory leaks, which occur when allocated memory is not
+properly garbage collected. This article demonstrates how to
+programmatically monitor, detect, and trace these leaks using the
+built-in <code>v8.getHeapStatistics()</code> API. You will learn how to
+capture key memory metrics, implement an automated monitoring loop, and
+programmatically generate heap snapshots when memory usage exceeds safe
+thresholds.</p>
+<h2 id="understanding-v8getheapstatistics">Understanding
+v8.getHeapStatistics()</h2>
+<p>The <code>v8</code> module in Node.js provides direct access to the
+V8 engine's APIs. By calling <code>v8.getHeapStatistics()</code>, you
+can retrieve a snapshot of the current state of the V8 heap.</p>
+<p>Here is how to import the module and view the raw output:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> v8 <span class="op">=</span> <span class="pp">require</span>(<span class="st">&#39;v8&#39;</span>)<span class="op">;</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(v8<span class="op">.</span><span class="fu">getHeapStatistics</span>())<span class="op">;</span></span></code></pre></div>
+<p>The returned object contains several critical properties:</p>
+<ul>
+<li><strong><code>total_heap_size</code></strong>: The total amount of
+memory currently committed to the V8 heap.</li>
+<li><strong><code>used_heap_size</code></strong>: The amount of memory
+actually being consumed by application data (objects, closures, etc.).
+This is the primary metric to watch for leaks.</li>
+<li><strong><code>heap_size_limit</code></strong>: The maximum size the
+heap can grow to before the process runs out of memory (OOM) and
+crashes.</li>
+</ul>
+<h2 id="programmatic-leak-detection-strategy">Programmatic Leak
+Detection Strategy</h2>
+<p>To trace a memory leak programmatically, you need to establish a
+baseline of <code>used_heap_size</code> and monitor how it changes over
+time under load. If <code>used_heap_size</code> continuously increases
+without ever dropping back to the baseline after garbage collection, a
+leak is likely present.</p>
+<p>You can set up a lightweight monitoring script inside your
+application to track this behavior and trigger an action if memory usage
+crosses a specific threshold.</p>
+<h3 id="step-1-implement-a-memory-monitor">Step 1: Implement a Memory
+Monitor</h3>
+<p>The following code regularly checks the ratio of used heap to the
+maximum heap limit. If the memory usage exceeds 85%, it triggers a
+warning.</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> v8 <span class="op">=</span> <span class="pp">require</span>(<span class="st">&#39;v8&#39;</span>)<span class="op">;</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">startMemoryMonitor</span>(intervalMs <span class="op">=</span> <span class="dv">10000</span><span class="op">,</span> thresholdPercent <span class="op">=</span> <span class="dv">85</span>) {</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="pp">setInterval</span>(() <span class="kw">=&gt;</span> {</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> { used_heap_size<span class="op">,</span> heap_size_limit } <span class="op">=</span> v8<span class="op">.</span><span class="fu">getHeapStatistics</span>()<span class="op">;</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> usagePercent <span class="op">=</span> (used_heap_size <span class="op">/</span> heap_size_limit) <span class="op">*</span> <span class="dv">100</span><span class="op">;</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> usedMB <span class="op">=</span> (used_heap_size <span class="op">/</span> <span class="dv">1024</span> <span class="op">/</span> <span class="dv">1024</span>)<span class="op">.</span><span class="fu">toFixed</span>(<span class="dv">2</span>)<span class="op">;</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> limitMB <span class="op">=</span> (heap_size_limit <span class="op">/</span> <span class="dv">1024</span> <span class="op">/</span> <span class="dv">1024</span>)<span class="op">.</span><span class="fu">toFixed</span>(<span class="dv">2</span>)<span class="op">;</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>    <span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(<span class="vs">`[Memory Monitor] Heap Usage: </span><span class="sc">${</span>usedMB<span class="sc">}</span><span class="vs"> MB / </span><span class="sc">${</span>limitMB<span class="sc">}</span><span class="vs"> MB (</span><span class="sc">${</span>usagePercent<span class="op">.</span><span class="fu">toFixed</span>(<span class="dv">2</span>)<span class="sc">}</span><span class="vs">%)`</span>)<span class="op">;</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (usagePercent <span class="op">&gt;</span> thresholdPercent) {</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>      <span class="bu">console</span><span class="op">.</span><span class="fu">error</span>(<span class="vs">`[ALERT] Memory usage exceeded </span><span class="sc">${</span>thresholdPercent<span class="sc">}</span><span class="vs">%! Initiating diagnostic action.`</span>)<span class="op">;</span></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>      <span class="fu">handlePotentialLeak</span>()<span class="op">;</span></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>  }<span class="op">,</span> intervalMs)<span class="op">;</span></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a><span class="fu">startMemoryMonitor</span>()<span class="op">;</span></span></code></pre></div>
+<h3 id="step-2-auto-generate-heap-snapshots-for-tracing">Step 2:
+Auto-Generate Heap Snapshots for Tracing</h3>
+<p>Identifying that a leak exists is only the first step; you must also
+locate the source of the leak. When the memory monitor detects high
+usage, you can programmatically write a heap snapshot to disk using
+<code>v8.writeHeapSnapshot()</code>.</p>
+<p>These snapshots can later be loaded into Chrome DevTools (under the
+"Memory" tab) to inspect which objects are retaining memory.</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">handlePotentialLeak</span>() {</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="cf">try</span> {</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>    <span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(<span class="st">&#39;Writing heap snapshot to disk...&#39;</span>)<span class="op">;</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> filename <span class="op">=</span> v8<span class="op">.</span><span class="fu">writeHeapSnapshot</span>()<span class="op">;</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>    <span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(<span class="vs">`Heap snapshot successfully saved to: </span><span class="sc">${</span>filename<span class="sc">}</span><span class="vs">`</span>)<span class="op">;</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Optional: Integrate with external logging/alerting systems here</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>  } <span class="cf">catch</span> (err) {</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>    <span class="bu">console</span><span class="op">.</span><span class="fu">error</span>(<span class="st">&#39;Failed to generate heap snapshot:&#39;</span><span class="op">,</span> err)<span class="op">;</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<h2 id="analyzing-the-snapshot">Analyzing the Snapshot</h2>
+<p>Once the <code>.heapsnapshot</code> file is generated:</p>
+<ol type="1">
+<li>Open Google Chrome and press <code>F12</code> to open DevTools.</li>
+<li>Navigate to the <strong>Memory</strong> tab.</li>
+<li>Right-click the left sidebar under "Profiles" and click
+<strong>Load</strong>.</li>
+<li>Select the generated <code>.heapsnapshot</code> file.</li>
+<li>Use the <strong>Comparison</strong> view against an earlier
+snapshot, or use the <strong>Summary</strong> view sorted by "Retained
+Size" to find the specific objects and references causing the memory
+leak.</li>
+</ol></article>
+        <div id=comments-container></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/node.js'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/node.js/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/node.js/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

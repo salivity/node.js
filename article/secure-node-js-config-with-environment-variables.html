@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-R4Y4YXFHZS"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+
+        function gtag(){
+            dataLayer.push(arguments);
+        }
+
+        gtag('js', new Date());
+
+        gtag('config', 'G-R4Y4YXFHZS');
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Node.js Config with Environment Variables - node.js</title>
+    <meta name="description" content="Managing sensitive configuration data like API keys, database credentials, and encryption keys is a critical aspect of Node.js application security. This article provides a straightforward guide on how to secure this sensitive information using environme">
+    <link rel="canonical" href="https://salivity.github.io/node.js/article/secure-node-js-config-with-environment-variables">
+    <link rel="icon" href="/node.js/favicon.ico">
+    <link rel="stylesheet" href="/node.js/css/style.css">
+    <link media="print" rel="stylesheet" href="/node.js/css/print.css">
+    <script src="/node.js/js/fuse.min.js"></script>
+    <script src="/node.js/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Secure Node.js Config with Environment Variables - node.js" />
+    <meta property="og:url" content="https://salivity.github.io/node.js/article/secure-node-js-config-with-environment-variables" />
+    <meta property="og:image:url" content="https://salivity.github.io/node.js/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/node.js/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Managing sensitive configuration data like API keys, database credentials, and encryption keys is a critical aspect of Node.js application security. This article provides a straightforward guide on how to secure this sensitive information using environme" />
+    <link rel="manifest" href="/node.js/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/node.js/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>node.js</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="https://github.com/salivity" title="Github" aria-label="Go To Github Profile Page"><svg class="svg-icon" focusable="false" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 1.27a11 11 0 00-3.48 21.46c.55.09.73-.28.73-.55v-1.84c-3.03.64-3.67-1.46-3.67-1.46-.55-1.29-1.28-1.65-1.28-1.65-.92-.65.1-.65.1-.65 1.1 0 1.73 1.1 1.73 1.1.92 1.65 2.57 1.2 3.21.92a2 2 0 01.64-1.47c-2.47-.27-5.04-1.19-5.04-5.5 0-1.1.46-2.1 1.2-2.84a3.76 3.76 0 010-2.93s.91-.28 3.11 1.1c1.8-.49 3.7-.49 5.5 0 2.1-1.38 3.02-1.1 3.02-1.1a3.76 3.76 0 010 2.93c.83.74 1.2 1.74 1.2 2.94 0 4.21-2.57 5.13-5.04 5.4.45.37.82.92.82 2.02v3.03c0 .27.1.64.73.55A11 11 0 0012 1.27"></path></svg></a></li>
+                <li><a href="/node.js/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="secure-nodejs-config-with-environment-variables">Secure Node.js
+Config with Environment Variables</h1>
+<p>Managing sensitive configuration data like API keys, database
+credentials, and encryption keys is a critical aspect of Node.js
+application security. This article provides a straightforward guide on
+how to secure this sensitive information using environment variables and
+the popular <code>dotenv</code> package. You will learn how to set up
+environment variables, load them into your application, and prevent
+accidental exposure in your version control systems.</p>
+<h2 id="why-use-environment-variables">Why Use Environment
+Variables?</h2>
+<p>Hardcoding sensitive data directly into your source code is a major
+security risk. If your code is pushed to a public repository like
+GitHub, your credentials will be exposed to the public.</p>
+<p>Environment variables solve this problem by decoupling your
+configuration parameters from your application code. This practice
+aligns with the "Twelve-Factor App" methodology, which recommends
+storing configuration in the environment. It also allows you to easily
+switch configurations between development, testing, and production
+environments without changing your code.</p>
+<h2 id="step-1-install-the-dotenv-package">Step 1: Install the dotenv
+Package</h2>
+<p>The easiest way to manage environment variables in a local Node.js
+development environment is by using the <code>dotenv</code> npm package.
+This library loads variables from a <code>.env</code> file into Node's
+<code>process.env</code> object.</p>
+<p>Run the following command in your project terminal to install it:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">npm</span> install dotenv</span></code></pre></div>
+<h2 id="step-2-create-a-env-file">Step 2: Create a .env File</h2>
+<p>In the root directory of your Node.js project, create a file named
+<code>.env</code>. This file will store your sensitive configuration
+options as key-value pairs.</p>
+<pre class="env"><code>PORT=3000
+DATABASE_URL=mongodb://localhost:27017/myapp
+API_SECRET_KEY=your_highly_secure_super_secret_key</code></pre>
+<p><em>Note: Do not put spaces around the <code>=</code> sign, and do
+not wrap values in quotes unless they contain spaces.</em></p>
+<h2 id="step-3-secure-the-env-file-with-gitignore">Step 3: Secure the
+.env File with .gitignore</h2>
+<p>Before writing any code, you must ensure that your <code>.env</code>
+file is never committed to your Git repository.</p>
+<p>Open your project's <code>.gitignore</code> file (or create one in
+the root folder if it doesn't exist) and add the following line:</p>
+<pre class="text"><code>.env</code></pre>
+<p>To help other developers on your team understand what configuration
+is required, create a template file named <code>.env.example</code>.
+This file should contain the keys but leave the sensitive values
+blank:</p>
+<pre class="env"><code>PORT=
+DATABASE_URL=
+API_SECRET_KEY=</code></pre>
+<p>You can safely commit <code>.env.example</code> to your version
+control system.</p>
+<h2 id="step-4-load-and-access-variables-in-nodejs">Step 4: Load and
+Access Variables in Node.js</h2>
+<p>To load the variables from your <code>.env</code> file into your
+application, require and configure the <code>dotenv</code> package as
+early as possible in your application's entry point (e.g.,
+<code>app.js</code> or <code>index.js</code>).</p>
+<p>Here is how to access the variables using
+<code>process.env</code>:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Load environment variables</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="pp">require</span>(<span class="st">&#39;dotenv&#39;</span>)<span class="op">.</span><span class="fu">config</span>()<span class="op">;</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> express <span class="op">=</span> <span class="pp">require</span>(<span class="st">&#39;express&#39;</span>)<span class="op">;</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> app <span class="op">=</span> <span class="fu">express</span>()<span class="op">;</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="co">// Access the variables</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> port <span class="op">=</span> <span class="bu">process</span><span class="op">.</span><span class="at">env</span><span class="op">.</span><span class="at">PORT</span> <span class="op">||</span> <span class="dv">5000</span><span class="op">;</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> dbUrl <span class="op">=</span> <span class="bu">process</span><span class="op">.</span><span class="at">env</span><span class="op">.</span><span class="at">DATABASE_URL</span><span class="op">;</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> apiKey <span class="op">=</span> <span class="bu">process</span><span class="op">.</span><span class="at">env</span><span class="op">.</span><span class="at">API_SECRET_KEY</span><span class="op">;</span></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>app<span class="op">.</span><span class="fu">get</span>(<span class="st">&#39;/&#39;</span><span class="op">,</span> (req<span class="op">,</span> res) <span class="kw">=&gt;</span> {</span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>  res<span class="op">.</span><span class="fu">send</span>(<span class="st">&#39;Application is running securely!&#39;</span>)<span class="op">;</span></span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>})<span class="op">;</span></span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>app<span class="op">.</span><span class="fu">listen</span>(port<span class="op">,</span> () <span class="kw">=&gt;</span> {</span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>  <span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(<span class="vs">`Server is running on port </span><span class="sc">${</span>port<span class="sc">}</span><span class="vs">`</span>)<span class="op">;</span></span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a>})<span class="op">;</span></span></code></pre></div>
+<p>If you are using ES modules (import syntax), you can load the
+configuration like this:</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> <span class="st">&#39;dotenv/config&#39;</span><span class="op">;</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> express <span class="im">from</span> <span class="st">&#39;express&#39;</span><span class="op">;</span></span></code></pre></div>
+<h2 id="step-5-managing-variables-in-production">Step 5: Managing
+Variables in Production</h2>
+<p>You should not upload your <code>.env</code> file to your production
+server. Instead, you should inject environment variables directly
+through your hosting platform's dashboard or CLI:</p>
+<ul>
+<li><strong>PaaS (Heroku, Render, Railway):</strong> Use the "Config
+Vars" or "Environment Variables" section in the settings tab of your
+dashboard.</li>
+<li><strong>Containers (Docker):</strong> Use the <code>-e</code> flag
+or define them in your <code>docker-compose.yml</code> file.</li>
+<li><strong>Cloud Providers (AWS, Google Cloud, Azure):</strong> Use
+their native Key Management Services (KMS) or Secret Managers to
+securely inject variables at runtime.</li>
+</ul></article>
+        <div id=comments-container></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/node.js'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/node.js/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/node.js/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

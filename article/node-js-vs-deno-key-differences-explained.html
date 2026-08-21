@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-R4Y4YXFHZS"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+
+        function gtag(){
+            dataLayer.push(arguments);
+        }
+
+        gtag('js', new Date());
+
+        gtag('config', 'G-R4Y4YXFHZS');
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Node.js vs Deno: Key Differences Explained - node.js</title>
+    <meta name="description" content="Both Node.js and Deno are modern JavaScript and TypeScript runtimes created by Ryan Dahl, but they serve different developer needs. This article provides a direct comparison between Node.js and Deno, highlighting their core differences in security, modul">
+    <link rel="canonical" href="https://salivity.github.io/node.js/article/node-js-vs-deno-key-differences-explained">
+    <link rel="icon" href="/node.js/favicon.ico">
+    <link rel="stylesheet" href="/node.js/css/style.css">
+    <link media="print" rel="stylesheet" href="/node.js/css/print.css">
+    <script src="/node.js/js/fuse.min.js"></script>
+    <script src="/node.js/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Node.js vs Deno: Key Differences Explained - node.js" />
+    <meta property="og:url" content="https://salivity.github.io/node.js/article/node-js-vs-deno-key-differences-explained" />
+    <meta property="og:image:url" content="https://salivity.github.io/node.js/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/node.js/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Both Node.js and Deno are modern JavaScript and TypeScript runtimes created by Ryan Dahl, but they serve different developer needs. This article provides a direct comparison between Node.js and Deno, highlighting their core differences in security, modul" />
+    <link rel="manifest" href="/node.js/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/node.js/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>node.js</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="https://github.com/salivity" title="Github" aria-label="Go To Github Profile Page"><svg class="svg-icon" focusable="false" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 1.27a11 11 0 00-3.48 21.46c.55.09.73-.28.73-.55v-1.84c-3.03.64-3.67-1.46-3.67-1.46-.55-1.29-1.28-1.65-1.28-1.65-.92-.65.1-.65.1-.65 1.1 0 1.73 1.1 1.73 1.1.92 1.65 2.57 1.2 3.21.92a2 2 0 01.64-1.47c-2.47-.27-5.04-1.19-5.04-5.5 0-1.1.46-2.1 1.2-2.84a3.76 3.76 0 010-2.93s.91-.28 3.11 1.1c1.8-.49 3.7-.49 5.5 0 2.1-1.38 3.02-1.1 3.02-1.1a3.76 3.76 0 010 2.93c.83.74 1.2 1.74 1.2 2.94 0 4.21-2.57 5.13-5.04 5.4.45.37.82.92.82 2.02v3.03c0 .27.1.64.73.55A11 11 0 0012 1.27"></path></svg></a></li>
+                <li><a href="/node.js/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="nodejs-vs-deno-key-differences-explained">Node.js vs Deno: Key
+Differences Explained</h1>
+<p>Both Node.js and Deno are modern JavaScript and TypeScript runtimes
+created by Ryan Dahl, but they serve different developer needs. This
+article provides a direct comparison between Node.js and Deno,
+highlighting their core differences in security, module management,
+TypeScript support, and built-in tooling to help you decide which
+runtime is best for your next project.</p>
+<h3 id="1-security-by-default">1. Security by Default</h3>
+<p>The most significant architectural difference between the two
+runtimes is how they handle security.</p>
+<ul>
+<li><strong>Node.js:</strong> By default, a Node.js application has full
+access to the host system. It can read and write to the file system,
+access the network, and read environment variables without any explicit
+permission from the user.</li>
+<li><strong>Deno:</strong> Deno is secure by default. A Deno script
+cannot access the file system, network, or environment variables unless
+you explicitly grant permission using command-line flags (such as
+<code>--allow-net</code>, <code>--allow-read</code>, or
+<code>--allow-write</code>) at runtime.</li>
+</ul>
+<h3 id="2-typescript-and-jsx-support">2. TypeScript and JSX Support</h3>
+<p>How the runtimes handle modern JavaScript extensions differs out of
+the box.</p>
+<ul>
+<li><strong>Node.js:</strong> Node.js only runs JavaScript natively. To
+run TypeScript or JSX, developers must install and configure external
+compilers, bundlers, and transpilers like <code>tsc</code>,
+<code>ts-node</code>, or Babel.</li>
+<li><strong>Deno:</strong> Deno has first-class, built-in support for
+TypeScript, JSX, and TSX. You can run TypeScript files directly without
+any manual compilation step or third-party configuration files.</li>
+</ul>
+<h3 id="3-module-management">3. Module Management</h3>
+<p>The way dependencies are imported and managed is entirely different
+in each runtime.</p>
+<ul>
+<li><strong>Node.js:</strong> Node.js uses the CommonJS
+(<code>require</code>) and ES Modules (<code>import</code>) systems. It
+relies on the <code>npm</code> package manager, a centralized registry,
+a <code>package.json</code> file to track dependencies, and a local
+<code>node_modules</code> folder to store them.</li>
+<li><strong>Deno:</strong> Deno completely removes the need for
+<code>package.json</code> and <code>node_modules</code>. It uses
+standard ES Modules and imports packages directly from URLs or local
+file paths. Dependencies are cached locally upon the first execution,
+eliminating the need for a package manager.</li>
+</ul>
+<h3 id="4-built-in-tooling">4. Built-in Tooling</h3>
+<p>The developer experience differs in terms of what utility tools are
+provided by default.</p>
+<ul>
+<li><strong>Node.js:</strong> Node.js is minimal. Developers must
+choose, install, and configure their own tools for testing (e.g., Jest,
+Vitest), linting (e.g., ESLint), formatting (e.g., Prettier), and
+bundling.</li>
+<li><strong>Deno:</strong> Deno is an all-in-one toolchain. It comes
+with a built-in test runner (<code>deno test</code>), a code linter
+(<code>deno lint</code>), a code formatter (<code>deno fmt</code>), and
+a bundler (<code>deno bundle</code>), reducing setup time and tool
+fatigue.</li>
+</ul>
+<h3 id="5-api-compatibility-and-standards">5. API Compatibility and
+Standards</h3>
+<p>Deno was designed to align closely with modern web browser APIs.</p>
+<ul>
+<li><strong>Node.js:</strong> Node.js was created before many modern web
+APIs existed, so it developed its own custom APIs for things like HTTP
+requests (<code>http</code> module) and buffer handling. While modern
+Node.js has adopted standard APIs like <code>fetch</code>, many legacy
+APIs remain.</li>
+<li><strong>Deno:</strong> Deno adopts standard web APIs wherever
+possible. It natively supports <code>fetch</code>, <code>Headers</code>,
+<code>Request</code>, <code>Response</code>, and the global
+<code>window</code> object, making code highly portable between the
+browser and the server. Deno also supports top-level <code>await</code>
+by default.</li>
+</ul></article>
+        <div id=comments-container></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/node.js'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/node.js/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/node.js/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

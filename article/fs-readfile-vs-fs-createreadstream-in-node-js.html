@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-R4Y4YXFHZS"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+
+        function gtag(){
+            dataLayer.push(arguments);
+        }
+
+        gtag('js', new Date());
+
+        gtag('config', 'G-R4Y4YXFHZS');
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>fs.readFile vs fs.createReadStream in Node.js - node.js</title>
+    <meta name="description" content="When working with the file system in Node.js, choosing the right method to read files is crucial for application performance and scalability. This article explains the key differences between fs.readFile and fs.createReadStream, detailing how they handle">
+    <link rel="canonical" href="https://salivity.github.io/node.js/article/fs-readfile-vs-fs-createreadstream-in-node-js">
+    <link rel="icon" href="/node.js/favicon.ico">
+    <link rel="stylesheet" href="/node.js/css/style.css">
+    <link media="print" rel="stylesheet" href="/node.js/css/print.css">
+    <script src="/node.js/js/fuse.min.js"></script>
+    <script src="/node.js/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="fs.readFile vs fs.createReadStream in Node.js - node.js" />
+    <meta property="og:url" content="https://salivity.github.io/node.js/article/fs-readfile-vs-fs-createreadstream-in-node-js" />
+    <meta property="og:image:url" content="https://salivity.github.io/node.js/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/node.js/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="When working with the file system in Node.js, choosing the right method to read files is crucial for application performance and scalability. This article explains the key differences between fs.readFile and fs.createReadStream, detailing how they handle" />
+    <link rel="manifest" href="/node.js/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/node.js/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>node.js</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="https://github.com/salivity" title="Github" aria-label="Go To Github Profile Page"><svg class="svg-icon" focusable="false" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 1.27a11 11 0 00-3.48 21.46c.55.09.73-.28.73-.55v-1.84c-3.03.64-3.67-1.46-3.67-1.46-.55-1.29-1.28-1.65-1.28-1.65-.92-.65.1-.65.1-.65 1.1 0 1.73 1.1 1.73 1.1.92 1.65 2.57 1.2 3.21.92a2 2 0 01.64-1.47c-2.47-.27-5.04-1.19-5.04-5.5 0-1.1.46-2.1 1.2-2.84a3.76 3.76 0 010-2.93s.91-.28 3.11 1.1c1.8-.49 3.7-.49 5.5 0 2.1-1.38 3.02-1.1 3.02-1.1a3.76 3.76 0 010 2.93c.83.74 1.2 1.74 1.2 2.94 0 4.21-2.57 5.13-5.04 5.4.45.37.82.92.82 2.02v3.03c0 .27.1.64.73.55A11 11 0 0012 1.27"></path></svg></a></li>
+                <li><a href="/node.js/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="fsreadfile-vs-fscreatereadstream-in-nodejs">fs.readFile vs
+fs.createReadStream in Node.js</h1>
+<p>When working with the file system in Node.js, choosing the right
+method to read files is crucial for application performance and
+scalability. This article explains the key differences between
+<code>fs.readFile</code> and <code>fs.createReadStream</code>, detailing
+how they handle memory, process data, and when you should use each
+approach in your applications.</p>
+<h2 id="how-they-work">How They Work</h2>
+<p>The fundamental difference between these two methods lies in how they
+load file data into your computer's memory.</p>
+<h3 id="fsreadfile-buffer-based">fs.readFile (Buffer-based)</h3>
+<p><code>fs.readFile</code> reads the entire contents of a file into
+memory asynchronously. Node.js allocates a single buffer large enough to
+hold the whole file. Once the entire file is successfully read and
+loaded into memory, the callback function is triggered, or the promise
+resolves with the complete file contents.</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> fs <span class="op">=</span> <span class="pp">require</span>(<span class="st">&#39;fs&#39;</span>)<span class="op">;</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>fs<span class="op">.</span><span class="fu">readFile</span>(<span class="st">&#39;large-file.txt&#39;</span><span class="op">,</span> <span class="st">&#39;utf8&#39;</span><span class="op">,</span> (err<span class="op">,</span> data) <span class="kw">=&gt;</span> {</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (err) <span class="cf">throw</span> err<span class="op">;</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  <span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(data)<span class="op">;</span> <span class="co">// The entire file content is in memory here</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>})<span class="op">;</span></span></code></pre></div>
+<h3 id="fscreatereadstream-stream-based">fs.createReadStream
+(Stream-based)</h3>
+<p><code>fs.createReadStream</code> reads the file in small, sequential
+chunks (by default, 64KB per chunk). Instead of waiting for the entire
+file to be read, it returns a Readable Stream object. This stream emits
+events (<code>data</code>, <code>end</code>, <code>error</code>) as
+chunks of data become available, allowing you to process data
+sequentially as it arrives.</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> fs <span class="op">=</span> <span class="pp">require</span>(<span class="st">&#39;fs&#39;</span>)<span class="op">;</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> stream <span class="op">=</span> fs<span class="op">.</span><span class="fu">createReadStream</span>(<span class="st">&#39;large-file.txt&#39;</span><span class="op">,</span> { <span class="dt">encoding</span><span class="op">:</span> <span class="st">&#39;utf8&#39;</span> })<span class="op">;</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>stream<span class="op">.</span><span class="fu">on</span>(<span class="st">&#39;data&#39;</span><span class="op">,</span> (chunk) <span class="kw">=&gt;</span> {</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  <span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(<span class="st">&#39;Received chunk of data:&#39;</span><span class="op">,</span> chunk)<span class="op">;</span> <span class="co">// Processing data chunk-by-chunk</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>})<span class="op">;</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>stream<span class="op">.</span><span class="fu">on</span>(<span class="st">&#39;end&#39;</span><span class="op">,</span> () <span class="kw">=&gt;</span> {</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>  <span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(<span class="st">&#39;Finished reading file.&#39;</span>)<span class="op">;</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>})<span class="op">;</span></span></code></pre></div>
+<h2 id="key-differences">Key Differences</h2>
+<h3 id="1-memory-consumption">1. Memory Consumption</h3>
+<ul>
+<li><strong><code>fs.readFile</code></strong>: Highly memory-intensive.
+Reading a 2GB file requires allocating at least 2GB of RAM. If multiple
+users request large files simultaneously, this can easily crash your
+Node.js process with an "Out of Memory" error.</li>
+<li><strong><code>fs.createReadStream</code></strong>: Highly
+memory-efficient. Regardless of the file size (whether it is 10MB or
+10GB), the memory footprint remains extremely low because only a small
+chunk of the file is loaded into memory at any given time.</li>
+</ul>
+<h3 id="2-processing-speed-and-latency">2. Processing Speed and
+Latency</h3>
+<ul>
+<li><strong><code>fs.readFile</code></strong>: High latency. Your
+application must wait for the disk to finish reading the entire file
+before any data processing can begin.</li>
+<li><strong><code>fs.createReadStream</code></strong>: Low latency. You
+can start processing, transforming, or sending the first chunk of data
+to a client almost immediately, without waiting for the rest of the file
+to load.</li>
+</ul>
+<h3 id="3-maximum-file-size-limits">3. Maximum File Size Limits</h3>
+<ul>
+<li><strong><code>fs.readFile</code></strong>: Limited by the maximum
+buffer size in Node.js (typically around 2GB on 64-bit systems).
+Attempting to read a file larger than this limit will result in an
+error.</li>
+<li><strong><code>fs.createReadStream</code></strong>: No size
+limitations. It can read files of any size because it never attempts to
+load the entire file into memory at once.</li>
+</ul>
+<h2 id="when-to-use-which">When to Use Which?</h2>
+<h3 id="use-fsreadfile-when">Use <code>fs.readFile</code> when:</h3>
+<ul>
+<li>You are dealing with small files (e.g., configuration files, small
+JSON files, or metadata).</li>
+<li>You need the complete file contents in memory before doing any
+operations (such as parsing a small JSON configuration).</li>
+<li>Code simplicity is your primary concern and performance is not
+critical.</li>
+</ul>
+<h3 id="use-fscreatereadstream-when">Use
+<code>fs.createReadStream</code> when:</h3>
+<ul>
+<li>You are dealing with large files (e.g., video files, database
+backups, or massive log files).</li>
+<li>You want to stream data directly to another destination, such as
+uploading to a cloud storage service or piping a file directly to an
+HTTP response (<code>stream.pipe(res)</code>).</li>
+<li>You are building high-throughput, scalable web servers where memory
+usage must remain predictable under heavy traffic.</li>
+</ul></article>
+        <div id=comments-container></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/node.js'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/node.js/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/node.js/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

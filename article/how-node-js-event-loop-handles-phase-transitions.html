@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-R4Y4YXFHZS"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+
+        function gtag(){
+            dataLayer.push(arguments);
+        }
+
+        gtag('js', new Date());
+
+        gtag('config', 'G-R4Y4YXFHZS');
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How Node.js Event Loop Handles Phase Transitions - node.js</title>
+    <meta name="description" content="The Node.js event loop is the core mechanism that enables asynchronous, non-blocking I/O operations by offloading tasks to the system kernel whenever possible. This article explains how the event loop transitions between its various execution phases, foc">
+    <link rel="canonical" href="https://salivity.github.io/node.js/article/how-node-js-event-loop-handles-phase-transitions">
+    <link rel="icon" href="/node.js/favicon.ico">
+    <link rel="stylesheet" href="/node.js/css/style.css">
+    <link media="print" rel="stylesheet" href="/node.js/css/print.css">
+    <script src="/node.js/js/fuse.min.js"></script>
+    <script src="/node.js/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How Node.js Event Loop Handles Phase Transitions - node.js" />
+    <meta property="og:url" content="https://salivity.github.io/node.js/article/how-node-js-event-loop-handles-phase-transitions" />
+    <meta property="og:image:url" content="https://salivity.github.io/node.js/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/node.js/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="The Node.js event loop is the core mechanism that enables asynchronous, non-blocking I/O operations by offloading tasks to the system kernel whenever possible. This article explains how the event loop transitions between its various execution phases, foc" />
+    <link rel="manifest" href="/node.js/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/node.js/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>node.js</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="https://github.com/salivity" title="Github" aria-label="Go To Github Profile Page"><svg class="svg-icon" focusable="false" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 1.27a11 11 0 00-3.48 21.46c.55.09.73-.28.73-.55v-1.84c-3.03.64-3.67-1.46-3.67-1.46-.55-1.29-1.28-1.65-1.28-1.65-.92-.65.1-.65.1-.65 1.1 0 1.73 1.1 1.73 1.1.92 1.65 2.57 1.2 3.21.92a2 2 0 01.64-1.47c-2.47-.27-5.04-1.19-5.04-5.5 0-1.1.46-2.1 1.2-2.84a3.76 3.76 0 010-2.93s.91-.28 3.11 1.1c1.8-.49 3.7-.49 5.5 0 2.1-1.38 3.02-1.1 3.02-1.1a3.76 3.76 0 010 2.93c.83.74 1.2 1.74 1.2 2.94 0 4.21-2.57 5.13-5.04 5.4.45.37.82.92.82 2.02v3.03c0 .27.1.64.73.55A11 11 0 0012 1.27"></path></svg></a></li>
+                <li><a href="/node.js/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-nodejs-event-loop-handles-phase-transitions">How Node.js
+Event Loop Handles Phase Transitions</h1>
+<p>The Node.js event loop is the core mechanism that enables
+asynchronous, non-blocking I/O operations by offloading tasks to the
+system kernel whenever possible. This article explains how the event
+loop transitions between its various execution phases, focusing
+specifically on the relationship, control flow, and transition mechanics
+between the timers phase and the poll phase.</p>
+<h2 id="the-architecture-of-the-event-loop">The Architecture of the
+Event Loop</h2>
+<p>The event loop is managed by the C library <strong>libuv</strong>. It
+consists of several distinct phases that are executed in a specific,
+repeating order. Each phase maintains a FIFO (First-In, First-Out) queue
+of callbacks to execute. When the event loop enters a given phase, it
+performs operations specific to that phase and executes callbacks in its
+queue until the queue is exhausted or the maximum callback limit is
+reached.</p>
+<p>The primary phases of the event loop, in order of execution, are:</p>
+<ol type="1">
+<li><strong>Timers</strong>: Executes callbacks scheduled by
+<code>setTimeout()</code> and <code>setInterval()</code>.</li>
+<li><strong>Pending Callbacks</strong>: Executes I/O callbacks deferred
+to the next loop iteration (such as TCP errors).</li>
+<li><strong>Idle, Prepare</strong>: Used only internally by libuv.</li>
+<li><strong>Poll</strong>: Retrieves new I/O events and executes
+I/O-related callbacks.</li>
+<li><strong>Check</strong>: Executes callbacks scheduled by
+<code>setImmediate()</code>.</li>
+<li><strong>Close Callbacks</strong>: Executes callbacks for closed
+connections, like <code>socket.on('close', ...)</code>.</li>
+</ol>
+<hr />
+<h2 id="the-timers-phase">The Timers Phase</h2>
+<p>When the event loop enters the <strong>Timers</strong> phase, it
+checks its internal heap of active timers. It compares the current loop
+time with the expiry time of the scheduled timers.</p>
+<ul>
+<li>If a timer's threshold has been reached or passed, its callback is
+moved to the timer queue and executed.</li>
+<li>If no timers are ready, or once all expired timer callbacks have
+been processed, the event loop transitions to the next phase in the
+sequence (Pending Callbacks).</li>
+</ul>
+<p>It is important to note that Node.js cannot guarantee exact execution
+times for timers. It only guarantees that they will not run
+<em>before</em> the specified threshold. The actual execution time
+depends on how long other phases, particularly the Poll phase, take to
+complete.</p>
+<hr />
+<h2 id="the-poll-phase">The Poll Phase</h2>
+<p>The <strong>Poll</strong> phase has two main functions:</p>
+<ol type="1">
+<li>Calculating how long it should block and poll for I/O.</li>
+<li>Processing events in the poll queue.</li>
+</ol>
+<p>When the event loop enters the Poll phase:</p>
+<ul>
+<li><strong>If the poll queue is not empty</strong>, the loop iterates
+through the queue of callbacks and executes them synchronously until the
+queue is empty or a system-dependent limit is reached.</li>
+<li><strong>If the poll queue is empty</strong>, the event loop checks
+its state to decide how to transition:
+<ul>
+<li>If scripts have been scheduled by <code>setImmediate()</code>, the
+event loop ends the Poll phase and transitions to the
+<strong>Check</strong> phase to execute those scripts.</li>
+<li>If there are no <code>setImmediate()</code> scripts, the event loop
+checks if any timers are currently in the timer heap.
+<ul>
+<li>If one or more timers are ready, the event loop immediately
+transitions back to the <strong>Timers</strong> phase to execute those
+callbacks.</li>
+<li>If there are no ready timers, the event loop blocks and waits for
+new I/O connections or events to be added to the poll queue, executing
+them immediately upon arrival.</li>
+</ul></li>
+</ul></li>
+</ul>
+<hr />
+<h2 id="phase-transition-mechanics-timers-to-poll-and-back">Phase
+Transition Mechanics: Timers to Poll and Back</h2>
+<p>To understand how the event loop decides to transition between Poll
+and Timers, consider this common scenario:</p>
+<ol type="1">
+<li><strong>Loop Starts</strong>: The loop enters the
+<strong>Timers</strong> phase. It checks for expired timers. If a timer
+with a 100ms threshold was set but only 50ms have passed, the loop skips
+the Timers phase.</li>
+<li><strong>Reaching the Poll Phase</strong>: The loop passes through
+Pending and Idle phases, arriving at the <strong>Poll</strong> phase
+with an empty queue.</li>
+<li><strong>Blocking Decision</strong>: Node.js calculates how long it
+can afford to block. It looks at the nearest scheduled timer (which is
+50ms away). It decides to block in the Poll phase for a maximum of 50ms,
+waiting for incoming network requests or file reads.</li>
+<li><strong>Event Arrival</strong>: If an I/O event occurs at the 30ms
+mark, the Poll phase immediately wakes up, executes the associated
+callback, and continues.</li>
+<li><strong>Timeout Reached</strong>: If no events occur within 50ms,
+the block timer expires. The event loop ends the Poll phase and loops
+back to the <strong>Timers</strong> phase, where it executes the
+now-expired 100ms timer callback.</li>
+</ol>
+<p>By using this calculated blocking mechanism, Node.js prevents CPU
+spinning, saves system resources, and ensures that timer callbacks are
+executed as close to their scheduled thresholds as possible.</p></article>
+        <div id=comments-container></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/node.js'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/node.js/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/node.js/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

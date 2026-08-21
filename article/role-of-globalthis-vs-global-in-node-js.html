@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-R4Y4YXFHZS"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+
+        function gtag(){
+            dataLayer.push(arguments);
+        }
+
+        gtag('js', new Date());
+
+        gtag('config', 'G-R4Y4YXFHZS');
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Role of globalThis vs global in Node.js - node.js</title>
+    <meta name="description" content="This article explores the role of the globalThis property in Node.js and compares it to the legacy global object. It explains how globalThis provides a standardized, cross-platform solution for accessing the global scope, how it integrates with Node.js,">
+    <link rel="canonical" href="https://salivity.github.io/node.js/article/role-of-globalthis-vs-global-in-node-js">
+    <link rel="icon" href="/node.js/favicon.ico">
+    <link rel="stylesheet" href="/node.js/css/style.css">
+    <link media="print" rel="stylesheet" href="/node.js/css/print.css">
+    <script src="/node.js/js/fuse.min.js"></script>
+    <script src="/node.js/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Role of globalThis vs global in Node.js - node.js" />
+    <meta property="og:url" content="https://salivity.github.io/node.js/article/role-of-globalthis-vs-global-in-node-js" />
+    <meta property="og:image:url" content="https://salivity.github.io/node.js/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/node.js/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article explores the role of the globalThis property in Node.js and compares it to the legacy global object. It explains how globalThis provides a standardized, cross-platform solution for accessing the global scope, how it integrates with Node.js," />
+    <link rel="manifest" href="/node.js/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/node.js/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>node.js</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="https://github.com/salivity" title="Github" aria-label="Go To Github Profile Page"><svg class="svg-icon" focusable="false" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 1.27a11 11 0 00-3.48 21.46c.55.09.73-.28.73-.55v-1.84c-3.03.64-3.67-1.46-3.67-1.46-.55-1.29-1.28-1.65-1.28-1.65-.92-.65.1-.65.1-.65 1.1 0 1.73 1.1 1.73 1.1.92 1.65 2.57 1.2 3.21.92a2 2 0 01.64-1.47c-2.47-.27-5.04-1.19-5.04-5.5 0-1.1.46-2.1 1.2-2.84a3.76 3.76 0 010-2.93s.91-.28 3.11 1.1c1.8-.49 3.7-.49 5.5 0 2.1-1.38 3.02-1.1 3.02-1.1a3.76 3.76 0 010 2.93c.83.74 1.2 1.74 1.2 2.94 0 4.21-2.57 5.13-5.04 5.4.45.37.82.92.82 2.02v3.03c0 .27.1.64.73.55A11 11 0 0012 1.27"></path></svg></a></li>
+                <li><a href="/node.js/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="role-of-globalthis-vs-global-in-nodejs">Role of globalThis vs
+global in Node.js</h1>
+<p>This article explores the role of the <code>globalThis</code>
+property in Node.js and compares it to the legacy <code>global</code>
+object. It explains how <code>globalThis</code> provides a standardized,
+cross-platform solution for accessing the global scope, how it
+integrates with Node.js, and why it has become the modern standard for
+JavaScript developers.</p>
+<h2 id="the-global-scope-dilemma-in-javascript">The Global Scope Dilemma
+in JavaScript</h2>
+<p>Historically, accessing the global object in JavaScript depended
+entirely on the runtime environment.</p>
+<ul>
+<li>In web browsers, the global object is accessed via
+<code>window</code> or <code>window.self</code>.</li>
+<li>In Web Workers, it is accessed via <code>self</code>.</li>
+<li>In Node.js, it is accessed via <code>global</code>.</li>
+</ul>
+<p>This fragmentation forced developers writing cross-platform
+(isomorphic) JavaScript to write complex, error-prone boilerplate code
+just to identify and access the global object.</p>
+<h2 id="what-is-globalthis">What is globalThis?</h2>
+<p>Introduced in ECMAScript 2020 (ES11), <code>globalThis</code> is a
+standardized global property that provides a unified way to access the
+global object in any JavaScript environment. Whether your code is
+running in a browser, a Node.js server, or a specialized serverless
+runtime, <code>globalThis</code> always points to the correct global
+object.</p>
+<p>In Node.js, <code>globalThis</code> is a reference to the top-level
+global scope, serving as the modern replacement for the legacy
+<code>global</code> object.</p>
+<h2 id="comparing-globalthis-and-global-in-nodejs">Comparing globalThis
+and global in Node.js</h2>
+<p>In Node.js, <code>globalThis</code> and <code>global</code> are
+highly related, but they serve different architectural purposes.</p>
+<h3 id="1-equality-and-reference">1. Equality and Reference</h3>
+<p>In Node.js, <code>globalThis</code> is not a new object; it is simply
+a reference to the existing <code>global</code> object. They point to
+the exact same memory address.</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(globalThis <span class="op">===</span> <span class="bu">global</span>)<span class="op">;</span> <span class="co">// Output: true</span></span></code></pre></div>
+<p>Because they reference the same object, any property attached to
+<code>globalThis</code> is automatically accessible via
+<code>global</code>, and vice versa.</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>globalThis<span class="op">.</span><span class="at">myAppVersion</span> <span class="op">=</span> <span class="st">&#39;1.0.0&#39;</span><span class="op">;</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(<span class="bu">global</span><span class="op">.</span><span class="at">myAppVersion</span>)<span class="op">;</span> <span class="co">// Output: &#39;1.0.0&#39;</span></span></code></pre></div>
+<h3 id="2-portability-and-standard-compliance">2. Portability and
+Standard compliance</h3>
+<p>The main difference lies in portability:</p>
+<ul>
+<li><strong><code>global</code> (Legacy):</strong> This is a proprietary
+Node.js global variable. If you attempt to run code containing
+<code>global</code> in a web browser, it will throw a
+<code>ReferenceError</code> because browsers do not define a
+<code>global</code> object.</li>
+<li><strong><code>globalThis</code> (Modern):</strong> This is part of
+the official ECMAScript specification. Code using
+<code>globalThis</code> is universally portable. It will run in Node.js,
+Chrome, Safari, Firefox, and Cloudflare Workers without
+modification.</li>
+</ul>
+<h2 id="when-to-use-globalthis">When to Use globalThis</h2>
+<p>You should use <code>globalThis</code> whenever you need to write
+modern, future-proof JavaScript.</p>
+<ul>
+<li><strong>Isomorphic/Universal Libraries:</strong> If you are writing
+a library meant to be consumed in both the browser and Node.js,
+<code>globalThis</code> eliminates the need for environment-detection
+checks.</li>
+<li><strong>Modern Node.js Applications:</strong> For applications
+running exclusively on Node.js, using <code>globalThis</code> ensures
+alignment with modern ECMAScript standards, making the codebase easier
+to maintain and migrate if runtime requirements change.</li>
+</ul></article>
+        <div id=comments-container></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/node.js'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/node.js/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/node.js/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

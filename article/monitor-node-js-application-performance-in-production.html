@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-R4Y4YXFHZS"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+
+        function gtag(){
+            dataLayer.push(arguments);
+        }
+
+        gtag('js', new Date());
+
+        gtag('config', 'G-R4Y4YXFHZS');
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monitor Node.js Application Performance in Production - node.js</title>
+    <meta name="description" content="Monitoring a Node.js application in production is crucial for maintaining high availability, optimizing response times, and detecting errors before they impact your users. This article explores the essential metrics you need to track, the best practices">
+    <link rel="canonical" href="https://salivity.github.io/node.js/article/monitor-node-js-application-performance-in-production">
+    <link rel="icon" href="/node.js/favicon.ico">
+    <link rel="stylesheet" href="/node.js/css/style.css">
+    <link media="print" rel="stylesheet" href="/node.js/css/print.css">
+    <script src="/node.js/js/fuse.min.js"></script>
+    <script src="/node.js/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Monitor Node.js Application Performance in Production - node.js" />
+    <meta property="og:url" content="https://salivity.github.io/node.js/article/monitor-node-js-application-performance-in-production" />
+    <meta property="og:image:url" content="https://salivity.github.io/node.js/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/node.js/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Monitoring a Node.js application in production is crucial for maintaining high availability, optimizing response times, and detecting errors before they impact your users. This article explores the essential metrics you need to track, the best practices" />
+    <link rel="manifest" href="/node.js/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/node.js/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>node.js</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="https://github.com/salivity" title="Github" aria-label="Go To Github Profile Page"><svg class="svg-icon" focusable="false" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 1.27a11 11 0 00-3.48 21.46c.55.09.73-.28.73-.55v-1.84c-3.03.64-3.67-1.46-3.67-1.46-.55-1.29-1.28-1.65-1.28-1.65-.92-.65.1-.65.1-.65 1.1 0 1.73 1.1 1.73 1.1.92 1.65 2.57 1.2 3.21.92a2 2 0 01.64-1.47c-2.47-.27-5.04-1.19-5.04-5.5 0-1.1.46-2.1 1.2-2.84a3.76 3.76 0 010-2.93s.91-.28 3.11 1.1c1.8-.49 3.7-.49 5.5 0 2.1-1.38 3.02-1.1 3.02-1.1a3.76 3.76 0 010 2.93c.83.74 1.2 1.74 1.2 2.94 0 4.21-2.57 5.13-5.04 5.4.45.37.82.92.82 2.02v3.03c0 .27.1.64.73.55A11 11 0 0012 1.27"></path></svg></a></li>
+                <li><a href="/node.js/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="monitor-nodejs-application-performance-in-production">Monitor
+Node.js Application Performance in Production</h1>
+<p>Monitoring a Node.js application in production is crucial for
+maintaining high availability, optimizing response times, and detecting
+errors before they impact your users. This article explores the
+essential metrics you need to track, the best practices for logging, and
+the top tools available to keep your production Node.js applications
+running smoothly.</p>
+<h2 id="key-nodejs-metrics-to-track">Key Node.js Metrics to Track</h2>
+<p>To understand the health of your application, you must monitor both
+system-level and application-specific metrics.</p>
+<h3 id="1-event-loop-lag">1. Event Loop Lag</h3>
+<p>Node.js runs on a single-threaded event loop. If a synchronous task
+blocks the thread, all incoming requests are delayed. Monitoring event
+loop lag—the delay between when a timer is scheduled and when it
+actually executes—is the most critical indicator of Node.js
+responsiveness.</p>
+<h3 id="2-memory-usage-and-memory-leaks">2. Memory Usage and Memory
+Leaks</h3>
+<p>Node.js applications run on the V8 engine, which has a default memory
+limit. You must track:</p>
+<ul>
+<li><strong>Resident Set Size (RSS):</strong> The total memory allocated
+for the process.</li>
+<li><strong>Heap Used vs. Heap Total:</strong> The memory actually used
+by JavaScript objects. A continuously rising heap usage that never drops
+after garbage collection indicates a memory leak.</li>
+</ul>
+<h3 id="3-cpu-utilization">3. CPU Utilization</h3>
+<p>High CPU usage can block the event loop. Monitoring CPU utilization
+helps you determine when to scale your application horizontally by
+spinning up more instances or clusters.</p>
+<h3 id="4-http-request-metrics">4. HTTP Request Metrics</h3>
+<p>Track the traffic flowing through your application to understand the
+user experience:</p>
+<ul>
+<li><strong>Throughput:</strong> The number of requests per second
+(RPS).</li>
+<li><strong>Latency:</strong> The time taken to process requests (focus
+on p95 and p99 percentiles to identify outliers).</li>
+<li><strong>Error Rates:</strong> The percentage of failed requests
+(specifically HTTP 5xx errors).</li>
+</ul>
+<hr />
+<h2 id="implementing-logging-and-error-tracking">Implementing Logging
+and Error Tracking</h2>
+<p>Metrics tell you <em>when</em> something is wrong, but logs and error
+trackers tell you <em>why</em> it is wrong.</p>
+<ul>
+<li><strong>Structured Logging:</strong> Avoid using
+<code>console.log</code> in production. Use structured loggers like
+<strong>Pino</strong> or <strong>Winston</strong> to output logs in JSON
+format. This makes it easy for log aggregators (like Elasticsearch or
+Logstash) to parse and search your logs.</li>
+<li><strong>Uncaught Exceptions:</strong> Always listen for
+<code>uncaughtException</code> and <code>unhandledRejection</code>
+events. Use error-tracking tools like <strong>Sentry</strong>,
+<strong>Bugsnag</strong>, or <strong>Rollbar</strong> to automatically
+capture and alert you to runtime crashes.</li>
+</ul>
+<hr />
+<h2 id="top-monitoring-tools-for-nodejs">Top Monitoring Tools for
+Node.js</h2>
+<p>Depending on your budget and infrastructure, you can choose between
+managed Application Performance Monitoring (APM) suites or open-source
+solutions.</p>
+<h3 id="1-apm-platforms-saas">1. APM Platforms (SaaS)</h3>
+<p>These tools offer out-of-the-box agent integration, requiring minimal
+configuration to track database queries, external API calls, and event
+loop metrics:</p>
+<ul>
+<li><strong>Datadog:</strong> Features deep tracing capabilities and
+customizable dashboards specifically for Node.js.</li>
+<li><strong>New Relic:</strong> Provides real-time transaction
+monitoring and performance breakdown.</li>
+<li><strong>Dynatrace:</strong> Uses AI-driven analytics to detect
+anomalies automatically.</li>
+</ul>
+<h3 id="2-open-source-and-self-hosted-solutions">2. Open-Source and
+Self-Hosted Solutions</h3>
+<p>For complete control over your data, you can build a custom
+monitoring stack:</p>
+<ul>
+<li><strong>Prometheus &amp; Grafana:</strong> Use the
+<code>prom-client</code> library in Node.js to expose application
+metrics. Prometheus scrapes these metrics, and Grafana visualizes them
+on dashboards.</li>
+<li><strong>PM2:</strong> A popular production process manager for
+Node.js that includes built-in terminal-based monitoring and clustering
+capabilities.</li>
+</ul>
+<hr />
+<h2 id="best-practices-for-production-monitoring">Best Practices for
+Production Monitoring</h2>
+<ul>
+<li><strong>Define Health Checks:</strong> Create a <code>/health</code>
+endpoint in your application that tests database connectivity and
+external service dependencies. Use your load balancer or container
+orchestrator (like Kubernetes) to query this endpoint regularly.</li>
+<li><strong>Set Up Alerting Thresholds:</strong> Do not wait for users
+to report issues. Configure alerts on critical thresholds, such as when
+event loop lag exceeds 100ms or when the HTTP 5xx error rate exceeds
+1%.</li>
+<li><strong>Keep APM Overhead Low:</strong> Ensure that your monitoring
+tools do not consume excessive CPU or memory, which can degrade the
+performance of the application they are meant to monitor.</li>
+</ul></article>
+        <div id=comments-container></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/node.js'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/node.js/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/node.js/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

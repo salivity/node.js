@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-R4Y4YXFHZS"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+
+        function gtag(){
+            dataLayer.push(arguments);
+        }
+
+        gtag('js', new Date());
+
+        gtag('config', 'G-R4Y4YXFHZS');
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Schedule Cron Jobs in Node.js - node.js</title>
+    <meta name="description" content="This article explains how to automate repetitive background tasks in a Node.js application. You will learn how to schedule tasks using popular lightweight libraries like node-cron and node-schedule, understand standard cron syntax, and explore best pract">
+    <link rel="canonical" href="https://salivity.github.io/node.js/article/how-to-schedule-cron-jobs-in-node-js">
+    <link rel="icon" href="/node.js/favicon.ico">
+    <link rel="stylesheet" href="/node.js/css/style.css">
+    <link media="print" rel="stylesheet" href="/node.js/css/print.css">
+    <script src="/node.js/js/fuse.min.js"></script>
+    <script src="/node.js/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How to Schedule Cron Jobs in Node.js - node.js" />
+    <meta property="og:url" content="https://salivity.github.io/node.js/article/how-to-schedule-cron-jobs-in-node-js" />
+    <meta property="og:image:url" content="https://salivity.github.io/node.js/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/node.js/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article explains how to automate repetitive background tasks in a Node.js application. You will learn how to schedule tasks using popular lightweight libraries like node-cron and node-schedule, understand standard cron syntax, and explore best pract" />
+    <link rel="manifest" href="/node.js/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/node.js/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>node.js</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="https://github.com/salivity" title="Github" aria-label="Go To Github Profile Page"><svg class="svg-icon" focusable="false" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 1.27a11 11 0 00-3.48 21.46c.55.09.73-.28.73-.55v-1.84c-3.03.64-3.67-1.46-3.67-1.46-.55-1.29-1.28-1.65-1.28-1.65-.92-.65.1-.65.1-.65 1.1 0 1.73 1.1 1.73 1.1.92 1.65 2.57 1.2 3.21.92a2 2 0 01.64-1.47c-2.47-.27-5.04-1.19-5.04-5.5 0-1.1.46-2.1 1.2-2.84a3.76 3.76 0 010-2.93s.91-.28 3.11 1.1c1.8-.49 3.7-.49 5.5 0 2.1-1.38 3.02-1.1 3.02-1.1a3.76 3.76 0 010 2.93c.83.74 1.2 1.74 1.2 2.94 0 4.21-2.57 5.13-5.04 5.4.45.37.82.92.82 2.02v3.03c0 .27.1.64.73.55A11 11 0 0012 1.27"></path></svg></a></li>
+                <li><a href="/node.js/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-to-schedule-cron-jobs-in-nodejs">How to Schedule Cron Jobs
+in Node.js</h1>
+<p>This article explains how to automate repetitive background tasks in
+a Node.js application. You will learn how to schedule tasks using
+popular lightweight libraries like <code>node-cron</code> and
+<code>node-schedule</code>, understand standard cron syntax, and explore
+best practices for managing scheduled jobs in production
+environments.</p>
+<h2 id="choosing-the-right-tool">Choosing the Right Tool</h2>
+<p>To run background tasks in Node.js, you generally rely on npm
+packages rather than the operating system's built-in tab manager. The
+two most common libraries are:</p>
+<ol type="1">
+<li><strong>node-cron</strong>: Best for traditional, interval-based
+cron expressions (e.g., "run every Monday at 5:00 AM").</li>
+<li><strong>node-schedule</strong>: Best for time-based scheduling and
+precise date-based scheduling (e.g., "run on December 25th, 2026").</li>
+</ol>
+<hr />
+<h2 id="method-1-using-node-cron">Method 1: Using
+<code>node-cron</code></h2>
+<p><code>node-cron</code> is a tiny, pure JavaScript scheduler that uses
+the standard crontab syntax.</p>
+<h3 id="1-installation">1. Installation</h3>
+<p>Install the package using npm:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">npm</span> install node-cron</span></code></pre></div>
+<h3 id="2-implementation">2. Implementation</h3>
+<p>Create a basic scheduler using the code below:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> cron <span class="op">=</span> <span class="pp">require</span>(<span class="st">&#39;node-cron&#39;</span>)<span class="op">;</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="co">// Schedule a task to run every minute</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>cron<span class="op">.</span><span class="fu">schedule</span>(<span class="st">&#39;* * * * *&#39;</span><span class="op">,</span> () <span class="kw">=&gt;</span> {</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  <span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(<span class="st">&#39;Running a task every minute: &#39;</span> <span class="op">+</span> <span class="kw">new</span> <span class="bu">Date</span>()<span class="op">.</span><span class="fu">toISOString</span>())<span class="op">;</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>})<span class="op">;</span></span></code></pre></div>
+<h3 id="understanding-cron-syntax">Understanding Cron Syntax</h3>
+<p>The five asterisks (<code>* * * * *</code>) represent different time
+units:</p>
+<pre class="text"><code> ┌────────────── second (optional, node-cron supports 6 fields)
+ │ ┌──────────── minute (0 - 59)
+ │ │ ┌────────── hour (0 - 23)
+ │ │ │ ┌──────── day of month (1 - 31)
+ │ │ │ │ ┌────── month (1 - 12)
+ │ │ │ │ │ ┌──── day of week (0 - 7) (0 or 7 is Sunday)
+ │ │ │ │ │ │
+ * * * * * *</code></pre>
+<ul>
+<li><code>0 0 * * *</code>: Runs every day at midnight.</li>
+<li><code>*/15 * * * *</code>: Runs every 15 minutes.</li>
+<li><code>0 9 * * 1-5</code>: Runs at 9:00 AM, Monday through
+Friday.</li>
+</ul>
+<hr />
+<h2 id="method-2-using-node-schedule">Method 2: Using
+<code>node-schedule</code></h2>
+<p>If you need to schedule tasks based on specific dates or complex
+rules rather than strict cron intervals, <code>node-schedule</code> is
+the preferred choice.</p>
+<h3 id="1-installation-1">1. Installation</h3>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">npm</span> install node-schedule</span></code></pre></div>
+<h3 id="2-implementation-1">2. Implementation</h3>
+<p>You can schedule tasks using object literal syntax or standard cron
+strings.</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> schedule <span class="op">=</span> <span class="pp">require</span>(<span class="st">&#39;node-schedule&#39;</span>)<span class="op">;</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="co">// Schedule a task to run at a specific date and time</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> date <span class="op">=</span> <span class="kw">new</span> <span class="bu">Date</span>(<span class="dv">2025</span><span class="op">,</span> <span class="dv">11</span><span class="op">,</span> <span class="dv">25</span><span class="op">,</span> <span class="dv">10</span><span class="op">,</span> <span class="dv">0</span><span class="op">,</span> <span class="dv">0</span>)<span class="op">;</span> <span class="co">// Dec 25, 2025, at 10:00 AM</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> job <span class="op">=</span> schedule<span class="op">.</span><span class="fu">scheduleJob</span>(date<span class="op">,</span> <span class="kw">function</span>() {</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>  <span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(<span class="st">&#39;Merry Christmas! Task executed.&#39;</span>)<span class="op">;</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>})<span class="op">;</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a><span class="co">// Schedule a task using recurrence rules (Every hour, at the 30-minute mark)</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> rule <span class="op">=</span> <span class="kw">new</span> schedule<span class="op">.</span><span class="fu">RecurrenceRule</span>()<span class="op">;</span></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>rule<span class="op">.</span><span class="at">minute</span> <span class="op">=</span> <span class="dv">30</span><span class="op">;</span></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> recurringJob <span class="op">=</span> schedule<span class="op">.</span><span class="fu">scheduleJob</span>(rule<span class="op">,</span> <span class="kw">function</span>() {</span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>  <span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(<span class="st">&#39;This job runs at half-past every hour.&#39;</span>)<span class="op">;</span></span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>})<span class="op">;</span></span></code></pre></div>
+<hr />
+<h2 id="best-practices-for-production">Best Practices for
+Production</h2>
+<p>While memory-based schedulers like <code>node-cron</code> and
+<code>node-schedule</code> work perfectly for single-instance servers,
+they have limitations in production:</p>
+<ul>
+<li><strong>Avoid Multi-Instance Duplication</strong>: If you run your
+Node.js app in a clustered environment (like PM2 or multiple Docker
+containers behind a load balancer), memory-based cron jobs will trigger
+on <strong>every</strong> instance, causing duplicate executions.</li>
+<li><strong>Handle Server Crashes</strong>: Memory-based jobs do not
+persist. If your server restarts, any pending one-off jobs scheduled in
+memory will be lost.</li>
+</ul>
+<h3 id="scaling-with-queue-systems">Scaling with Queue Systems</h3>
+<p>For multi-instance environments or resource-heavy background tasks,
+use a database-backed queue system:</p>
+<ul>
+<li><strong>BullMQ / Bull</strong>: A Redis-based queue for Node.js that
+handles delayed jobs, cron-like repeats, and guarantees that a job is
+executed only once across a cluster.</li>
+<li><strong>Agenda</strong>: A MongoDB-backed job scheduler that
+persists jobs across server restarts.</li>
+</ul></article>
+        <div id=comments-container></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/node.js'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/node.js/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/node.js/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-R4Y4YXFHZS"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+
+        function gtag(){
+            dataLayer.push(arguments);
+        }
+
+        gtag('js', new Date());
+
+        gtag('config', 'G-R4Y4YXFHZS');
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Difference Between setImmediate and process.nextTick in Node.js - node.js</title>
+    <meta name="description" content="In Node.js, managing asynchronous execution is crucial for building performant applications. This article explores the fundamental differences between process.nextTick() and setImmediate(), explaining how they interact with the Node.js event loop, their">
+    <link rel="canonical" href="https://salivity.github.io/node.js/article/difference-between-setimmediate-and-process-nexttick-in-node-js">
+    <link rel="icon" href="/node.js/favicon.ico">
+    <link rel="stylesheet" href="/node.js/css/style.css">
+    <link media="print" rel="stylesheet" href="/node.js/css/print.css">
+    <script src="/node.js/js/fuse.min.js"></script>
+    <script src="/node.js/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Difference Between setImmediate and process.nextTick in Node.js - node.js" />
+    <meta property="og:url" content="https://salivity.github.io/node.js/article/difference-between-setimmediate-and-process-nexttick-in-node-js" />
+    <meta property="og:image:url" content="https://salivity.github.io/node.js/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/node.js/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="In Node.js, managing asynchronous execution is crucial for building performant applications. This article explores the fundamental differences between process.nextTick() and setImmediate(), explaining how they interact with the Node.js event loop, their" />
+    <link rel="manifest" href="/node.js/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/node.js/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>node.js</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="https://github.com/salivity" title="Github" aria-label="Go To Github Profile Page"><svg class="svg-icon" focusable="false" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 1.27a11 11 0 00-3.48 21.46c.55.09.73-.28.73-.55v-1.84c-3.03.64-3.67-1.46-3.67-1.46-.55-1.29-1.28-1.65-1.28-1.65-.92-.65.1-.65.1-.65 1.1 0 1.73 1.1 1.73 1.1.92 1.65 2.57 1.2 3.21.92a2 2 0 01.64-1.47c-2.47-.27-5.04-1.19-5.04-5.5 0-1.1.46-2.1 1.2-2.84a3.76 3.76 0 010-2.93s.91-.28 3.11 1.1c1.8-.49 3.7-.49 5.5 0 2.1-1.38 3.02-1.1 3.02-1.1a3.76 3.76 0 010 2.93c.83.74 1.2 1.74 1.2 2.94 0 4.21-2.57 5.13-5.04 5.4.45.37.82.92.82 2.02v3.03c0 .27.1.64.73.55A11 11 0 0012 1.27"></path></svg></a></li>
+                <li><a href="/node.js/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1
+id="difference-between-setimmediate-and-processnexttick-in-nodejs">Difference
+Between setImmediate and process.nextTick in Node.js</h1>
+<p>In Node.js, managing asynchronous execution is crucial for building
+performant applications. This article explores the fundamental
+differences between <code>process.nextTick()</code> and
+<code>setImmediate()</code>, explaining how they interact with the
+Node.js event loop, their execution order, and when to use each method
+in your code.</p>
+<h2 id="the-nodejs-event-loop-context">The Node.js Event Loop
+Context</h2>
+<p>To understand the difference between these two functions, you must
+understand where they sit in relation to the Node.js event loop.</p>
+<ul>
+<li><strong><code>process.nextTick()</code></strong> fires immediately
+after the current operation completes, regardless of the current phase
+of the event loop. It bypasses the event loop phases entirely to process
+its queue.</li>
+<li><strong><code>setImmediate()</code></strong> is designed to execute
+a script once the current event loop cycle (tick) finishes. It runs
+during the "check" phase of the event loop.</li>
+</ul>
+<p>Despite their names, <code>process.nextTick()</code> fires "more
+immediately" than <code>setImmediate()</code>.</p>
+<h2 id="execution-order-comparison">Execution Order Comparison</h2>
+<p>When both functions are called from within the same synchronous
+block, <code>process.nextTick()</code> will always execute before
+<code>setImmediate()</code>.</p>
+<p>Consider the following code example:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(<span class="st">&#39;Synchronous Start&#39;</span>)<span class="op">;</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">setImmediate</span>(() <span class="kw">=&gt;</span> {</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  <span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(<span class="st">&#39;setImmediate executed&#39;</span>)<span class="op">;</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>})<span class="op">;</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="bu">process</span><span class="op">.</span><span class="fu">nextTick</span>(() <span class="kw">=&gt;</span> {</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>  <span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(<span class="st">&#39;process.nextTick executed&#39;</span>)<span class="op">;</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>})<span class="op">;</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(<span class="st">&#39;Synchronous End&#39;</span>)<span class="op">;</span></span></code></pre></div>
+<h3 id="output">Output:</h3>
+<pre class="text"><code>Synchronous Start
+Synchronous End
+process.nextTick executed
+setImmediate executed</code></pre>
+<p>In this lifecycle, the synchronous code runs first. Once the call
+stack is empty, Node.js processes the <code>nextTick</code> queue before
+continuing the event loop phases where <code>setImmediate</code> is
+eventually processed.</p>
+<h2 id="key-differences">Key Differences</h2>
+<h3 id="1-event-loop-interaction">1. Event Loop Interaction</h3>
+<ul>
+<li><strong><code>process.nextTick()</code></strong>: It is not
+technically part of the event loop. Instead, the
+<code>nextTickQueue</code> is processed after the current operation
+finishes, regardless of the current phase of the event loop.</li>
+<li><strong><code>setImmediate()</code></strong>: It is part of the
+event loop, specifically executing during the "check" phase (after I/O
+events are processed).</li>
+</ul>
+<h3 id="2-starvation-risk">2. Starvation Risk</h3>
+<ul>
+<li><strong><code>process.nextTick()</code></strong>: Because it
+processes recursively until the queue is empty, a poorly designed
+recursive <code>process.nextTick()</code> loop can starve the event
+loop. This blocks Node.js from performing any I/O operations, rendering
+the application unresponsive.</li>
+<li><strong><code>setImmediate()</code></strong>: It yields to the event
+loop. Subsequent <code>setImmediate</code> calls are queued for the next
+loop tick, ensuring that I/O polling and other events are not
+starved.</li>
+</ul>
+<h2 id="when-to-use-which">When to Use Which?</h2>
+<h3 id="use-processnexttick-when">Use <code>process.nextTick()</code>
+when:</h3>
+<ul>
+<li>You need to guarantee that an asynchronous callback runs immediately
+after the current synchronous code, but before the event loop
+continues.</li>
+<li>You need to handle errors, cleanup resources, or run callbacks
+before the user's next event loop iteration begins.</li>
+<li>You want to allow an event constructor to bind event listeners
+synchronously before emitting an event asynchronously.</li>
+</ul>
+<h3 id="use-setimmediate-when">Use <code>setImmediate()</code>
+when:</h3>
+<ul>
+<li>You want to queue a function to run after any pending I/O operations
+have been executed.</li>
+<li>You want to queue heavy execution blocks while preventing event loop
+starvation, allowing Node.js to remain responsive to other client
+requests.</li>
+</ul></article>
+        <div id=comments-container></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/node.js'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/node.js/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/node.js/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

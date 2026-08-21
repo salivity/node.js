@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-R4Y4YXFHZS"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+
+        function gtag(){
+            dataLayer.push(arguments);
+        }
+
+        gtag('js', new Date());
+
+        gtag('config', 'G-R4Y4YXFHZS');
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>What is Node.js REPL and How to Access It - node.js</title>
+    <meta name="description" content="This article explains the Read-Eval-Print Loop (REPL) in Node.js, detailing its role as an interactive programming environment and providing step-by-step instructions on how to access and utilize it for quick JavaScript code execution and debugging. REPL">
+    <link rel="canonical" href="https://salivity.github.io/node.js/article/what-is-node-js-repl-and-how-to-access-it">
+    <link rel="icon" href="/node.js/favicon.ico">
+    <link rel="stylesheet" href="/node.js/css/style.css">
+    <link media="print" rel="stylesheet" href="/node.js/css/print.css">
+    <script src="/node.js/js/fuse.min.js"></script>
+    <script src="/node.js/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="What is Node.js REPL and How to Access It - node.js" />
+    <meta property="og:url" content="https://salivity.github.io/node.js/article/what-is-node-js-repl-and-how-to-access-it" />
+    <meta property="og:image:url" content="https://salivity.github.io/node.js/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/node.js/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article explains the Read-Eval-Print Loop (REPL) in Node.js, detailing its role as an interactive programming environment and providing step-by-step instructions on how to access and utilize it for quick JavaScript code execution and debugging. REPL" />
+    <link rel="manifest" href="/node.js/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/node.js/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>node.js</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="https://github.com/salivity" title="Github" aria-label="Go To Github Profile Page"><svg class="svg-icon" focusable="false" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 1.27a11 11 0 00-3.48 21.46c.55.09.73-.28.73-.55v-1.84c-3.03.64-3.67-1.46-3.67-1.46-.55-1.29-1.28-1.65-1.28-1.65-.92-.65.1-.65.1-.65 1.1 0 1.73 1.1 1.73 1.1.92 1.65 2.57 1.2 3.21.92a2 2 0 01.64-1.47c-2.47-.27-5.04-1.19-5.04-5.5 0-1.1.46-2.1 1.2-2.84a3.76 3.76 0 010-2.93s.91-.28 3.11 1.1c1.8-.49 3.7-.49 5.5 0 2.1-1.38 3.02-1.1 3.02-1.1a3.76 3.76 0 010 2.93c.83.74 1.2 1.74 1.2 2.94 0 4.21-2.57 5.13-5.04 5.4.45.37.82.92.82 2.02v3.03c0 .27.1.64.73.55A11 11 0 0012 1.27"></path></svg></a></li>
+                <li><a href="/node.js/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="what-is-nodejs-repl-and-how-to-access-it">What is Node.js REPL
+and How to Access It</h1>
+<p>This article explains the Read-Eval-Print Loop (REPL) in Node.js,
+detailing its role as an interactive programming environment and
+providing step-by-step instructions on how to access and utilize it for
+quick JavaScript code execution and debugging.</p>
+<h2 id="what-is-the-nodejs-repl">What is the Node.js REPL?</h2>
+<p>REPL stands for <strong>Read-Eval-Print Loop</strong>. It is an
+interactive computer programming environment that takes single user
+inputs, evaluates them, and returns the result to the user. The Node.js
+environment comes bundled with a REPL by default.</p>
+<p>The acronym represents the four distinct tasks the environment
+performs:</p>
+<ul>
+<li><strong>Read:</strong> Accepts the user's JavaScript input, parses
+it into a data structure, and stores it in memory.</li>
+<li><strong>Eval:</strong> Takes the parsed input and evaluates
+(executes) the JavaScript code.</li>
+<li><strong>Print:</strong> Outputs the result of the evaluation to the
+console.</li>
+<li><strong>Loop:</strong> Repeats the entire process, waiting for the
+next input until the user terminates the session.</li>
+</ul>
+<h2 id="the-role-of-the-repl-in-nodejs">The Role of the REPL in
+Node.js</h2>
+<p>The REPL is an invaluable tool for developers, serving several key
+roles in the software development lifecycle:</p>
+<ul>
+<li><strong>Prototyping and Experimentation:</strong> It allows
+developers to quickly test JavaScript expressions, syntax, and Node.js
+APIs without the overhead of creating, saving, and executing a physical
+<code>.js</code> file.</li>
+<li><strong>Debugging:</strong> Developers can paste snippets of code
+into the REPL to isolate and debug specific logic in real-time.</li>
+<li><strong>Learning:</strong> It provides an immediate feedback loop
+for beginners learning JavaScript or Node.js concepts, as they can
+instantly see the outcome of their code.</li>
+</ul>
+<h2 id="how-to-access-the-nodejs-repl">How to Access the Node.js
+REPL</h2>
+<p>Accessing the REPL is straightforward and only requires that you have
+Node.js installed on your system.</p>
+<h3 id="step-1-open-your-terminal">Step 1: Open Your Terminal</h3>
+<p>Open your computer's terminal, command prompt, or PowerShell
+interface:</p>
+<ul>
+<li><strong>macOS/Linux:</strong> Open the Terminal app.</li>
+<li><strong>Windows:</strong> Open Command Prompt (cmd) or
+PowerShell.</li>
+</ul>
+<h3 id="step-2-launch-the-repl">Step 2: Launch the REPL</h3>
+<p>Type the following command and press <code>Enter</code>:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">node</span></span></code></pre></div>
+<p>Upon executing this command, your terminal prompt will change to
+<code>&gt;</code> (or show a cursor waiting for input), indicating that
+you have successfully entered the Node.js REPL environment.</p>
+<h3 id="step-3-run-code">Step 3: Run Code</h3>
+<p>You can now type any valid JavaScript code and press
+<code>Enter</code> to run it. For example:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;</span> <span class="dv">5</span> <span class="op">+</span> <span class="dv">10</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="dv">15</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;</span> <span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(<span class="st">&quot;Hello, Node.js!&quot;</span>)<span class="op">;</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>Hello<span class="op">,</span> <span class="bu">Node</span><span class="op">.</span><span class="at">js</span><span class="op">!</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="kw">undefined</span></span></code></pre></div>
+<p><em>Note: <code>undefined</code> is printed after
+<code>console.log()</code> because that function does not return a
+value.</em></p>
+<h2 id="useful-repl-commands-and-features">Useful REPL Commands and
+Features</h2>
+<p>The Node.js REPL includes built-in commands and shortcuts to enhance
+your workflow:</p>
+<ul>
+<li><strong>The Underscore Variable (<code>_</code>):</strong> You can
+use the underscore character to reference the result of the last
+evaluated expression.
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;</span> <span class="dv">10</span> <span class="op">+</span> <span class="dv">10</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="dv">20</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;</span> _ <span class="op">*</span> <span class="dv">2</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="dv">40</span></span></code></pre></div></li>
+<li><strong>Tab Completion:</strong> Pressing the <code>Tab</code> key
+twice will display a list of all available global variables, functions,
+and Node.js modules.</li>
+<li><strong>Multi-line Expressions:</strong> If you start a block of
+code (like an <code>if</code> statement or a function) and press
+<code>Enter</code>, the REPL will automatically detect that more input
+is needed and display <code>...</code> on the next line.</li>
+</ul>
+<h3 id="how-to-exit-the-repl">How to Exit the REPL</h3>
+<p>To close the REPL session and return to your standard terminal
+prompt, you can use any of the following methods:</p>
+<ul>
+<li>Type <code>.exit</code> and press <code>Enter</code>.</li>
+<li>Press <code>Ctrl + C</code> twice.</li>
+<li>Press <code>Ctrl + D</code> once.</li>
+</ul></article>
+        <div id=comments-container></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/node.js'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/node.js/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/node.js/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

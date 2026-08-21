@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-R4Y4YXFHZS"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+
+        function gtag(){
+            dataLayer.push(arguments);
+        }
+
+        gtag('js', new Date());
+
+        gtag('config', 'G-R4Y4YXFHZS');
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Node.js os.networkInterfaces Method Guide - node.js</title>
+    <meta name="description" content="This article explores the role of the os.networkInterfaces() method in Node.js system scripting. It explains how this built-in method retrieves detailed information about the host machine's network interfaces, examines the structure of the data it return">
+    <link rel="canonical" href="https://salivity.github.io/node.js/article/node-js-os-networkinterfaces-method-guide">
+    <link rel="icon" href="/node.js/favicon.ico">
+    <link rel="stylesheet" href="/node.js/css/style.css">
+    <link media="print" rel="stylesheet" href="/node.js/css/print.css">
+    <script src="/node.js/js/fuse.min.js"></script>
+    <script src="/node.js/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Node.js os.networkInterfaces Method Guide - node.js" />
+    <meta property="og:url" content="https://salivity.github.io/node.js/article/node-js-os-networkinterfaces-method-guide" />
+    <meta property="og:image:url" content="https://salivity.github.io/node.js/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/node.js/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article explores the role of the os.networkInterfaces() method in Node.js system scripting. It explains how this built-in method retrieves detailed information about the host machine's network interfaces, examines the structure of the data it return" />
+    <link rel="manifest" href="/node.js/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/node.js/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>node.js</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="https://github.com/salivity" title="Github" aria-label="Go To Github Profile Page"><svg class="svg-icon" focusable="false" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 1.27a11 11 0 00-3.48 21.46c.55.09.73-.28.73-.55v-1.84c-3.03.64-3.67-1.46-3.67-1.46-.55-1.29-1.28-1.65-1.28-1.65-.92-.65.1-.65.1-.65 1.1 0 1.73 1.1 1.73 1.1.92 1.65 2.57 1.2 3.21.92a2 2 0 01.64-1.47c-2.47-.27-5.04-1.19-5.04-5.5 0-1.1.46-2.1 1.2-2.84a3.76 3.76 0 010-2.93s.91-.28 3.11 1.1c1.8-.49 3.7-.49 5.5 0 2.1-1.38 3.02-1.1 3.02-1.1a3.76 3.76 0 010 2.93c.83.74 1.2 1.74 1.2 2.94 0 4.21-2.57 5.13-5.04 5.4.45.37.82.92.82 2.02v3.03c0 .27.1.64.73.55A11 11 0 0012 1.27"></path></svg></a></li>
+                <li><a href="/node.js/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="nodejs-osnetworkinterfaces-method-guide">Node.js
+os.networkInterfaces Method Guide</h1>
+<p>This article explores the role of the
+<code>os.networkInterfaces()</code> method in Node.js system scripting.
+It explains how this built-in method retrieves detailed information
+about the host machine's network interfaces, examines the structure of
+the data it returns, and provides practical examples of how to use it to
+resolve local IP addresses and build network-aware applications.</p>
+<h2 id="what-is-osnetworkinterfaces">What is
+os.networkInterfaces()?</h2>
+<p>The <code>os.networkInterfaces()</code> method is a built-in function
+of the Node.js <code>os</code> (operating system) module. It queries the
+operating system and returns an object containing details about every
+network interface allocated on the host machine. This includes physical
+hardware interfaces (like Ethernet or Wi-Fi cards) as well as virtual
+interfaces (such as loopback addresses and VPN tunnels).</p>
+<h2 id="the-returned-data-structure">The Returned Data Structure</h2>
+<p>When you call <code>os.networkInterfaces()</code>, it returns a JSON
+object where each key represents the name of a network interface (for
+example, <code>eth0</code>, <code>wlan0</code>, or <code>lo</code>). The
+value associated with each key is an array of objects, with each object
+describing a specific network address assigned to that interface.</p>
+<p>Each address object contains the following properties:</p>
+<ul>
+<li><strong>address</strong>: The assigned IPv4 or IPv6 address.</li>
+<li><strong>netmask</strong>: The subnet mask (IPv4) or prefix length
+(IPv6).</li>
+<li><strong>family</strong>: The IP family, represented as either the
+string <code>'IPv4'</code> or <code>'IPv6'</code>.</li>
+<li><strong>mac</strong>: The Media Access Control (MAC) address of the
+network interface.</li>
+<li><strong>internal</strong>: A boolean value that is <code>true</code>
+if the interface is a loopback interface (such as
+<code>127.0.0.1</code>), and <code>false</code> otherwise.</li>
+<li><strong>cidr</strong>: The routing prefix in Classless Inter-Domain
+Routing (CIDR) notation.</li>
+</ul>
+<h2 id="practical-use-cases-in-system-scripts">Practical Use Cases in
+System Scripts</h2>
+<p>In system administration and DevOps automation,
+<code>os.networkInterfaces()</code> is commonly used for several
+critical tasks:</p>
+<h3 id="1-dynamically-finding-the-local-ip-address">1. Dynamically
+Finding the Local IP Address</h3>
+<p>When launching a web server, you may want to bind the application to
+a specific local network IP rather than localhost. System scripts use
+this method to scan active interfaces and extract the external IPv4
+address.</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> os <span class="op">=</span> <span class="pp">require</span>(<span class="st">&#39;os&#39;</span>)<span class="op">;</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">getLocalIpAddress</span>() {</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> interfaces <span class="op">=</span> os<span class="op">.</span><span class="fu">networkInterfaces</span>()<span class="op">;</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> (<span class="kw">const</span> name <span class="kw">of</span> <span class="bu">Object</span><span class="op">.</span><span class="fu">keys</span>(interfaces)) {</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> (<span class="kw">const</span> iface <span class="kw">of</span> interfaces[name]) {</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>            <span class="co">// Skip over internal (loopback) and non-IPv4 addresses</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> (iface<span class="op">.</span><span class="at">family</span> <span class="op">===</span> <span class="st">&#39;IPv4&#39;</span> <span class="op">&amp;&amp;</span> <span class="op">!</span>iface<span class="op">.</span><span class="at">internal</span>) {</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>                <span class="cf">return</span> iface<span class="op">.</span><span class="at">address</span><span class="op">;</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>            }</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>        }</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="st">&#39;127.0.0.1&#39;</span><span class="op">;</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a><span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(<span class="vs">`Server running locally at: http://</span><span class="sc">${</span><span class="fu">getLocalIpAddress</span>()<span class="sc">}</span><span class="vs">:3000`</span>)<span class="op">;</span></span></code></pre></div>
+<h3 id="2-network-auditing-and-system-diagnostics">2. Network Auditing
+and System Diagnostics</h3>
+<p>Scripts designed to monitor system health or perform security audits
+use <code>os.networkInterfaces()</code> to log MAC addresses, identify
+unauthorized virtual network interfaces, or verify that required VPN
+tunnels are active.</p>
+<h3 id="3-service-discovery-and-clustering">3. Service Discovery and
+Clustering</h3>
+<p>In distributed systems, a node needs to announce its location to
+other nodes in the cluster. By querying the network interfaces, a script
+can automatically determine its own IP within the local area network
+(LAN) and broadcast it to coordinate with peers.</p></article>
+        <div id=comments-container></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/node.js'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/node.js/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/node.js/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-R4Y4YXFHZS"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+
+        function gtag(){
+            dataLayer.push(arguments);
+        }
+
+        gtag('js', new Date());
+
+        gtag('config', 'G-R4Y4YXFHZS');
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Node.js module.parent and its Modern Replacement - node.js</title>
+    <meta name="description" content="In Node.js, module.parent was historically used to detect if a file was being run directly via the command line or imported as a dependency by another file. However, this property has been deprecated due to caching inconsistencies and its incompatibility">
+    <link rel="canonical" href="https://salivity.github.io/node.js/article/node-js-module-parent-and-its-modern-replacement">
+    <link rel="icon" href="/node.js/favicon.ico">
+    <link rel="stylesheet" href="/node.js/css/style.css">
+    <link media="print" rel="stylesheet" href="/node.js/css/print.css">
+    <script src="/node.js/js/fuse.min.js"></script>
+    <script src="/node.js/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Node.js module.parent and its Modern Replacement - node.js" />
+    <meta property="og:url" content="https://salivity.github.io/node.js/article/node-js-module-parent-and-its-modern-replacement" />
+    <meta property="og:image:url" content="https://salivity.github.io/node.js/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/node.js/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="In Node.js, module.parent was historically used to detect if a file was being run directly via the command line or imported as a dependency by another file. However, this property has been deprecated due to caching inconsistencies and its incompatibility" />
+    <link rel="manifest" href="/node.js/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/node.js/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>node.js</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="https://github.com/salivity" title="Github" aria-label="Go To Github Profile Page"><svg class="svg-icon" focusable="false" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 1.27a11 11 0 00-3.48 21.46c.55.09.73-.28.73-.55v-1.84c-3.03.64-3.67-1.46-3.67-1.46-.55-1.29-1.28-1.65-1.28-1.65-.92-.65.1-.65.1-.65 1.1 0 1.73 1.1 1.73 1.1.92 1.65 2.57 1.2 3.21.92a2 2 0 01.64-1.47c-2.47-.27-5.04-1.19-5.04-5.5 0-1.1.46-2.1 1.2-2.84a3.76 3.76 0 010-2.93s.91-.28 3.11 1.1c1.8-.49 3.7-.49 5.5 0 2.1-1.38 3.02-1.1 3.02-1.1a3.76 3.76 0 010 2.93c.83.74 1.2 1.74 1.2 2.94 0 4.21-2.57 5.13-5.04 5.4.45.37.82.92.82 2.02v3.03c0 .27.1.64.73.55A11 11 0 0012 1.27"></path></svg></a></li>
+                <li><a href="/node.js/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="nodejs-moduleparent-and-its-modern-replacement">Node.js
+module.parent and its Modern Replacement</h1>
+<p>In Node.js, <code>module.parent</code> was historically used to
+detect if a file was being run directly via the command line or imported
+as a dependency by another file. However, this property has been
+deprecated due to caching inconsistencies and its incompatibility with
+modern ES Modules. This article explores the original purpose of
+<code>module.parent</code>, the limitations that led to its deprecation,
+and the modern alternatives used in Node.js development today.</p>
+<h2 id="the-role-of-moduleparent">The Role of module.parent</h2>
+<p>In older Node.js applications using the CommonJS module system,
+<code>module.parent</code> returned the module object of the script that
+first imported (required) the current file. If the file was executed
+directly from the terminal (for example, <code>node app.js</code>),
+<code>module.parent</code> would return <code>null</code> or
+<code>undefined</code>.</p>
+<p>Developers primarily used this property to create dual-purpose files
+that could either be run as standalone CLI scripts or imported as
+reusable modules. A typical use case looked like this:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="op">!</span>module<span class="op">.</span><span class="at">parent</span>) {</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="co">// The script is being run directly from the command line</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">runCLI</span>()<span class="op">;</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>} <span class="cf">else</span> {</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  <span class="co">// The script is being required by another module</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  module<span class="op">.</span><span class="at">exports</span> <span class="op">=</span> { utilityFunction }<span class="op">;</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<h2 id="why-moduleparent-was-deprecated">Why module.parent Was
+Deprecated</h2>
+<p>While useful, <code>module.parent</code> suffered from fundamental
+design flaws that made it unreliable:</p>
+<ol type="1">
+<li><strong>Inaccurate with Caching:</strong> Node.js caches modules
+after they are first loaded. If Module A required Module B, and then
+Module C also required Module B, <code>module.parent</code> inside
+Module B would only ever point to Module A (the first parent). It did
+not accurately represent the active dependency tree.</li>
+<li><strong>ES Modules Incompatibility:</strong> The <code>module</code>
+global object, including <code>module.parent</code>, does not exist in
+ECMAScript Modules (ESM), which is the standard module system in modern
+JavaScript.</li>
+</ol>
+<p>Because of these issues, Node.js officially deprecated
+<code>module.parent</code> in version 14.6.0.</p>
+<h2 id="modern-replacements">Modern Replacements</h2>
+<p>Depending on whether you are using CommonJS or ES Modules, modern
+Node.js provides robust alternatives to replace
+<code>module.parent</code>.</p>
+<h3 id="for-commonjs-modules-cjs">For CommonJS Modules (CJS)</h3>
+<p>In CommonJS, the standard way to check if a file is the entry point
+of the application is to compare <code>require.main</code> with the
+current <code>module</code> object.</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (require<span class="op">.</span><span class="at">main</span> <span class="op">===</span> module) {</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="co">// The file is being run directly</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">runCLI</span>()<span class="op">;</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<p><code>require.main</code> refers to the entry-point module
+initialized when the Node.js process started. If it is strictly equal to
+the current <code>module</code>, the script is the entry point. This
+method is highly reliable because it is unaffected by module
+caching.</p>
+<h3 id="for-es-modules-esm">For ES Modules (ESM)</h3>
+<p>In ES Modules, globals like <code>require</code> and
+<code>module</code> are unavailable. To achieve the same entry-point
+check, you must compare the current file's URL
+(<code>import.meta.url</code>) with the entry-point script executed by
+the Node.js process.</p>
+<p>A common approach in Node.js for ESM is:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> { fileURLToPath } <span class="im">from</span> <span class="st">&#39;url&#39;</span><span class="op">;</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> <span class="bu">process</span> <span class="im">from</span> <span class="st">&#39;process&#39;</span><span class="op">;</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> isMain <span class="op">=</span> <span class="bu">process</span><span class="op">.</span><span class="at">argv</span>[<span class="dv">1</span>] <span class="op">===</span> <span class="fu">fileURLToPath</span>(<span class="im">import</span><span class="op">.</span><span class="at">meta</span><span class="op">.</span><span class="at">url</span>)<span class="op">;</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (isMain) {</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>  <span class="co">// The script is being run directly</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<p>Alternatively, you can use the lightweight npm package
+<code>es-main</code> to handle this check cleanly in ESM
+environments:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> esMain <span class="im">from</span> <span class="st">&#39;es-main&#39;</span><span class="op">;</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">esMain</span>(<span class="im">import</span><span class="op">.</span><span class="at">meta</span>)) {</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="co">// The script is being run directly</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div></article>
+        <div id=comments-container></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/node.js'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/node.js/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/node.js/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

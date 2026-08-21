@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-R4Y4YXFHZS"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+
+        function gtag(){
+            dataLayer.push(arguments);
+        }
+
+        gtag('js', new Date());
+
+        gtag('config', 'G-R4Y4YXFHZS');
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How Node.js Resolves Modules from Nested Folders - node.js</title>
+    <meta name="description" content="When a Node.js application imports a module from a deeply nested directory, the runtime employs a systematic lookup strategy to locate the file. This article explains how the Node.js dependency resolution algorithm traverses the directory tree, inspects">
+    <link rel="canonical" href="https://salivity.github.io/node.js/article/how-node-js-resolves-modules-from-nested-folders">
+    <link rel="icon" href="/node.js/favicon.ico">
+    <link rel="stylesheet" href="/node.js/css/style.css">
+    <link media="print" rel="stylesheet" href="/node.js/css/print.css">
+    <script src="/node.js/js/fuse.min.js"></script>
+    <script src="/node.js/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How Node.js Resolves Modules from Nested Folders - node.js" />
+    <meta property="og:url" content="https://salivity.github.io/node.js/article/how-node-js-resolves-modules-from-nested-folders" />
+    <meta property="og:image:url" content="https://salivity.github.io/node.js/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/node.js/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="When a Node.js application imports a module from a deeply nested directory, the runtime employs a systematic lookup strategy to locate the file. This article explains how the Node.js dependency resolution algorithm traverses the directory tree, inspects" />
+    <link rel="manifest" href="/node.js/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/node.js/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>node.js</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="https://github.com/salivity" title="Github" aria-label="Go To Github Profile Page"><svg class="svg-icon" focusable="false" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 1.27a11 11 0 00-3.48 21.46c.55.09.73-.28.73-.55v-1.84c-3.03.64-3.67-1.46-3.67-1.46-.55-1.29-1.28-1.65-1.28-1.65-.92-.65.1-.65.1-.65 1.1 0 1.73 1.1 1.73 1.1.92 1.65 2.57 1.2 3.21.92a2 2 0 01.64-1.47c-2.47-.27-5.04-1.19-5.04-5.5 0-1.1.46-2.1 1.2-2.84a3.76 3.76 0 010-2.93s.91-.28 3.11 1.1c1.8-.49 3.7-.49 5.5 0 2.1-1.38 3.02-1.1 3.02-1.1a3.76 3.76 0 010 2.93c.83.74 1.2 1.74 1.2 2.94 0 4.21-2.57 5.13-5.04 5.4.45.37.82.92.82 2.02v3.03c0 .27.1.64.73.55A11 11 0 0012 1.27"></path></svg></a></li>
+                <li><a href="/node.js/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-nodejs-resolves-modules-from-nested-folders">How Node.js
+Resolves Modules from Nested Folders</h1>
+<p>When a Node.js application imports a module from a deeply nested
+directory, the runtime employs a systematic lookup strategy to locate
+the file. This article explains how the Node.js dependency resolution
+algorithm traverses the directory tree, inspects
+<code>node_modules</code> folders, and resolves file extensions or
+package entry points to successfully load the requested dependency.</p>
+<hr />
+<h2 id="1-categorizing-the-import-path">1. Categorizing the Import
+Path</h2>
+<p>Before searching the directory tree, Node.js categorizes the module
+identifier passed to <code>require()</code> or <code>import</code>. The
+resolution behavior depends on this classification:</p>
+<ul>
+<li><strong>Core Modules:</strong> If the identifier matches a built-in
+Node.js module (like <code>fs</code>, <code>path</code>, or
+<code>http</code>), Node.js loads it immediately.</li>
+<li><strong>Relative or Absolute Paths:</strong> If the identifier
+starts with <code>./</code>, <code>/</code>, or <code>../</code>,
+Node.js looks for the file or directory strictly relative to the
+importing file's location.</li>
+<li><strong>Package Dependencies:</strong> If the identifier does not
+start with a path specifier (e.g., <code>require('lodash')</code>),
+Node.js initiates its nested directory search algorithm.</li>
+</ul>
+<hr />
+<h2 id="2-the-node_modules-directory-traversal">2. The
+<code>node_modules</code> Directory Traversal</h2>
+<p>When resolving a package dependency from a nested folder, Node.js
+walks up the directory tree starting from the directory of the current
+file.</p>
+<p>If a file located at
+<code>/projects/app/src/components/buttons/submit.js</code> calls
+<code>require('lodash')</code>, Node.js searches for the dependency in
+the following sequence:</p>
+<ol type="1">
+<li><code>/projects/app/src/components/buttons/node_modules/lodash</code></li>
+<li><code>/projects/app/src/components/node_modules/lodash</code></li>
+<li><code>/projects/app/src/node_modules/lodash</code></li>
+<li><code>/projects/node_modules/lodash</code></li>
+<li><code>/node_modules/lodash</code></li>
+</ol>
+<p>Node.js appends <code>/node_modules</code> to the current directory
+and checks for the package. If it is not found, Node.js moves up to the
+parent directory (using <code>..</code>) and repeats the process. This
+bubbling continues until the algorithm reaches the root directory of the
+file system. If the module is still not found, Node.js checks globally
+configured paths (like the <code>NODE_PATH</code> environment variable)
+before throwing a <code>MODULE_NOT_FOUND</code> error.</p>
+<hr />
+<h2 id="3-resolving-the-file-inside-the-target-folder">3. Resolving the
+File Inside the Target Folder</h2>
+<p>Once Node.js locates the correct module folder (e.g.,
+<code>node_modules/lodash</code>), it must determine which specific file
+to load. It processes the target directory using the following
+priority:</p>
+<h3 id="step-a-check-packagejson">Step A: Check
+<code>package.json</code></h3>
+<p>Node.js looks for a <code>package.json</code> file in the root of the
+target module folder.</p>
+<ul>
+<li><strong>Modern Resolution (Exports):</strong> If the
+<code>package.json</code> contains an <code>"exports"</code> field,
+Node.js uses it to map the import path to the correct internal
+file.</li>
+<li><strong>Legacy Resolution (Main):</strong> If <code>"exports"</code>
+is not present, Node.js looks for the <code>"main"</code> field (e.g.,
+<code>"main": "lib/index.js"</code>) and attempts to load the specified
+file.</li>
+</ul>
+<h3 id="step-b-check-for-default-file-extensions">Step B: Check for
+Default File Extensions</h3>
+<p>If there is no <code>package.json</code>, or if the
+<code>"main"</code> field is missing, Node.js attempts to match exact
+files in the target directory by appending common extensions in this
+order:</p>
+<ol type="1">
+<li><code>.js</code></li>
+<li><code>.json</code></li>
+<li><code>.node</code> (for compiled binary addons)</li>
+</ol>
+<h3 id="step-c-fallback-to-index">Step C: Fallback to
+<code>index</code></h3>
+<p>If no specific file is indicated by the <code>package.json</code> or
+found via direct extension matching, Node.js looks for a default index
+file inside the folder. It searches for:</p>
+<ol type="1">
+<li><code>index.js</code></li>
+<li><code>index.json</code></li>
+<li><code>index.node</code></li>
+</ol>
+<p>If all of these steps fail to produce a file, Node.js moves to the
+next parent <code>node_modules</code> directory in the traversal
+chain.</p></article>
+        <div id=comments-container></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/node.js'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/node.js/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/node.js/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>
